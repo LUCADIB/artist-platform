@@ -44,8 +44,17 @@ export function SearchBar({
       params.delete("categoryId");
     }
 
-    router.push(`${basePath}?${params.toString()}`);
-    router.refresh();
+    router.push(`${basePath}?${params.toString()}`, { scroll: false });
+
+    setTimeout(() => {
+      const el = document.getElementById("results");
+      if (el) {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    }, 300);
   }
 
   return (
@@ -62,7 +71,7 @@ export function SearchBar({
         </label>
         <input
           id="search-name"
-          className="input"
+          className="input text-base"
           placeholder="Ej. DJ, banda, show..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -78,7 +87,7 @@ export function SearchBar({
         </label>
         <select
           id="search-category"
-          className="input"
+          className="input text-base"
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
         >

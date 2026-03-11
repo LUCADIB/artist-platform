@@ -80,20 +80,21 @@ export default async function ArtistsPage({
       <section className="mx-auto w-full max-w-6xl space-y-4">
         {artists && artists.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {artists.map((artist: any) => (
-                <ArtistCard
-                  key={artist.id}
-                  id={artist.id}
-                  slug={artist.slug}
-                  name={artist.name}
-                  city={artist.city}
-                  categoryName={artist.categories?.name}
-                  avatarUrl={artist.avatar_url}
-                />
-              ))}
+            <div id="results">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {artists.map((artist: any) => (
+                  <ArtistCard
+                    key={artist.id}
+                    id={artist.id}
+                    slug={artist.slug}
+                    name={artist.name}
+                    city={artist.city}
+                    categoryName={artist.categories?.name}
+                    avatarUrl={artist.avatar_url}
+                  />
+                ))}
+              </div>
             </div>
-
             {totalPages > 1 && (
               <div className="mt-4 flex items-center justify-between gap-3 text-xs text-neutral-600 sm:text-sm">
                 <span>
