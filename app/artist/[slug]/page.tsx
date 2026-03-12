@@ -68,7 +68,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
               <img
                 src={primaryImage}
                 alt={safeArtist.name}
-                className="w-full aspect-square object-cover"
+                className="w-full aspect-square object-cover object-top"
               />
             ) : (
               <div className="flex h-64 items-center justify-center text-sm text-neutral-400">
