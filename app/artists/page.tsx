@@ -36,6 +36,7 @@ export default async function ArtistsPage({
     .select("id, slug, name, city, avatar_url, categories ( name )", {
       count: "exact"
     })
+    .eq("status", "approved") // Only show approved artists publicly
     .order("created_at", { ascending: false })
     .range(from, to);
 

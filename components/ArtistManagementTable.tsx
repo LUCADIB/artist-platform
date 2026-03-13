@@ -17,6 +17,10 @@ interface Artist {
   bio: string | null;
   avatar_url: string | null;
   category_id: string | null;
+  status: string;
+  rejection_reason: string | null;
+  created_by_admin: boolean;
+  managed_by_admin: boolean;
   categories: { id: string; name: string } | null;
 }
 
@@ -25,11 +29,242 @@ interface ArtistManagementTableProps {
   categories: Category[];
 }
 
-export function ArtistManagementTable({ artists, categories: initialCategories }: ArtistManagementTableProps) {
+/**
+ * Status badge component with appropriate styling.
+ */
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<
+    string,
+    { bg: string; text: string; label: string }
+  > = {
+    pending_review: {
+      bg: "bg-amber-100",
+      text: "text-amber-700",
+      label: "Pendiente",
+    },
+    approved: {
+      bg: "bg-green-100",
+      text: "text-green-700",
+      label: "Aprobado",
+    },
+    rejected: {
+      bg: "bg-red-100",
+      text: "text-red-700",
+      label: "Rechazado",
+    },
+    draft: {
+      bg: "bg-neutral-100",
+      text: "text-neutral-600",
+      label: "Borrador",
+    },
+    suspended: {
+      bg: "bg-neutral-200",
+      text: "text-neutral-700",
+      label: "Suspendido",
+    },
+  };
+
+  const { bg, text, label } = config[status] || config.draft;
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${bg} ${text}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+/**
+ * Approval buttons for pending/rejected artists.
+ */
+function ApprovalButtons({
+  artistId,
+  onAction,
+}: {
+  artistId: string;
+  onAction: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [showRejectInput, setShowRejectInput] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  async function handleApprove() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/artists/${artistId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al aprobar");
+      }
+      onAction();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al aprobar el artista");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleReject() {
+    if (!rejectReason.trim()) {
+      alert("Ingresa el motivo del rechazo");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/artists/${artistId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "rejected",
+          rejection_reason: rejectReason,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al rechazar");
+      }
+      onAction();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al rechazar el artista");
+    } finally {
+      setLoading(false);
+      setShowRejectInput(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={handleApprove}
+        disabled={loading}
+        className="rounded-md bg-green-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
+      >
+        Aprobar
+      </button>
+      {showRejectInput ? (
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Motivo del rechazo"
+            className="w-32 rounded border border-neutral-200 px-2 py-1 text-xs"
+          />
+          <button
+            onClick={handleReject}
+            disabled={loading}
+            className="rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white"
+          >
+            OK
+          </button>
+          <button
+            onClick={() => setShowRejectInput(false)}
+            className="rounded-md border border-neutral-200 px-2 py-1 text-xs"
+          >
+            X
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowRejectInput(true)}
+          disabled={loading}
+          className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+        >
+          Rechazar
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Toggle button for "Gestionado por mí" (managed_by_admin).
+ * When enabled, the artist appears in the manager's availability selector.
+ */
+function ManagedToggle({
+  artistId,
+  initialValue,
+  onToggle,
+}: {
+  artistId: string;
+  initialValue: boolean;
+  onToggle: () => void;
+}) {
+  const [isManaged, setIsManaged] = useState(initialValue);
+  const [loading, setLoading] = useState(false);
+
+  async function handleToggle() {
+    setLoading(true);
+    try {
+      const newValue = !isManaged;
+      const res = await fetch(`/api/artists/${artistId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ managed_by_admin: newValue }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al actualizar");
+      }
+      setIsManaged(newValue);
+      onToggle();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al actualizar");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleToggle}
+      disabled={loading}
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 ${
+        isManaged
+          ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
+          : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
+      }`}
+      title={isManaged ? "Quitar de mi gestión" : "Añadir a mi gestión"}
+    >
+      {loading ? (
+        "..."
+      ) : isManaged ? (
+        <>
+          <svg
+            className="mr-1 h-3 w-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          Gestionado
+        </>
+      ) : (
+        "Gestionar"
+      )}
+    </button>
+  );
+}
+
+export function ArtistManagementTable({
+  artists,
+  categories: initialCategories,
+}: ArtistManagementTableProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
-  // Local categories state so inline creation updates the dropdown globally
   const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   function handleCategoryCreated(newCategory: Category) {
     setCategories((prev) => {
@@ -38,12 +273,18 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
     });
   }
 
+  function handleRefresh() {
+    setRefreshKey((k) => k + 1);
+    window.location.reload();
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" key={refreshKey}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm text-neutral-500">
-          {artists.length} artista{artists.length !== 1 ? "s" : ""} registrado{artists.length !== 1 ? "s" : ""}
+          {artists.length} artista{artists.length !== 1 ? "s" : ""} registrado
+          {artists.length !== 1 ? "s" : ""}
         </span>
         {!showCreateForm && !editingArtist && (
           <button
@@ -58,7 +299,9 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
       {/* Create form */}
       {showCreateForm && (
         <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-sm font-semibold text-neutral-800">Crear artista</h3>
+          <h3 className="mb-4 text-sm font-semibold text-neutral-800">
+            Crear artista
+          </h3>
           <ArtistForm
             initialCategories={categories}
             onCancel={() => setShowCreateForm(false)}
@@ -70,7 +313,9 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
       {/* Edit form */}
       {editingArtist && (
         <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-sm font-semibold text-neutral-800">Editar artista</h3>
+          <h3 className="mb-4 text-sm font-semibold text-neutral-800">
+            Editar artista
+          </h3>
           <ArtistForm
             initialCategories={categories}
             initialData={{
@@ -100,14 +345,16 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
             <table className="w-full text-left text-sm">
               <thead className="border-b border-neutral-100 bg-neutral-50">
                 <tr>
-                  {["Nombre", "Slug", "Ciudad", "Categoría", "Acciones"].map((col) => (
-                    <th
-                      key={col}
-                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500"
-                    >
-                      {col}
-                    </th>
-                  ))}
+                  {["Nombre", "Estado", "Gestión", "Ciudad", "Categoría", "Acciones"].map(
+                    (col) => (
+                      <th
+                        key={col}
+                        className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+                      >
+                        {col}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
@@ -127,11 +374,27 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
                             {artist.name.charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <span className="font-medium text-neutral-900">{artist.name}</span>
+                        <div>
+                          <span className="font-medium text-neutral-900">
+                            {artist.name}
+                          </span>
+                          {!artist.created_by_admin && (
+                            <span className="ml-2 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-600">
+                              Auto-registrado
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-neutral-500">
-                      {artist.slug ?? "—"}
+                    <td className="px-4 py-3">
+                      <StatusBadge status={artist.status || "draft"} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <ManagedToggle
+                        artistId={artist.id}
+                        initialValue={artist.managed_by_admin || false}
+                        onToggle={handleRefresh}
+                      />
                     </td>
                     <td className="px-4 py-3 text-neutral-700">
                       {artist.city ?? "—"}
@@ -141,6 +404,12 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
+                        {(artist.status === "pending_review" || (!artist.status && !artist.created_by_admin)) && (
+                          <ApprovalButtons
+                            artistId={artist.id}
+                            onAction={handleRefresh}
+                          />
+                        )}
                         <button
                           onClick={() => {
                             setShowCreateForm(false);
@@ -184,17 +453,40 @@ export function ArtistManagementTable({ artists, categories: initialCategories }
                       </div>
                     )}
                     <div>
-                      <p className="font-semibold text-neutral-900">{artist.name}</p>
-                      <p className="font-mono text-xs text-neutral-400">{artist.slug ?? "—"}</p>
+                      <p className="font-semibold text-neutral-900">
+                        {artist.name}
+                      </p>
+                      <p className="font-mono text-xs text-neutral-400">
+                        {artist.slug ?? "—"}
+                      </p>
                     </div>
                   </div>
+                  <StatusBadge status={artist.status || "draft"} />
+                </div>
+                <div className="mb-3 flex items-center gap-2 text-xs text-neutral-500">
+                  <span>{artist.city ?? "—"}</span>
                   {artist.categories?.name && (
-                    <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
-                      {artist.categories.name}
-                    </span>
+                    <>
+                      <span>·</span>
+                      <span>{artist.categories.name}</span>
+                    </>
                   )}
                 </div>
-                <p className="mb-3 text-xs text-neutral-500">{artist.city ?? "—"}</p>
+                <div className="mb-3 flex items-center gap-2">
+                  <ManagedToggle
+                    artistId={artist.id}
+                    initialValue={artist.managed_by_admin || false}
+                    onToggle={handleRefresh}
+                  />
+                </div>
+                {(artist.status === "pending_review" || (!artist.status && !artist.created_by_admin)) && (
+                  <div className="mb-3">
+                    <ApprovalButtons
+                      artistId={artist.id}
+                      onAction={handleRefresh}
+                    />
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={() => {

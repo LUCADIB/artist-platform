@@ -29,6 +29,7 @@ export default async function AvailabilityPage() {
     supabase
       .from("artists")
       .select("id, name, slug, city, bio, avatar_url, category_id, categories ( id, name )")
+      .eq("managed_by_admin", true) // Only show artists managed by admin
       .order("name", { ascending: true }),
     supabase
       .from("availability")
@@ -41,7 +42,8 @@ export default async function AvailabilityPage() {
         status,
         artists(name)
       `)
-      .order("date", { ascending: true }),
+      .order("date", { ascending: true })
+      .order("start_time", { ascending: true }),
   ]);
 
   const artists = (artistsData ?? []) as unknown as Artist[];
@@ -54,11 +56,20 @@ export default async function AvailabilityPage() {
           Disponibilidad de artistas
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Bloquea y gestiona los horarios no disponibles de los artistas.
+          Bloquea y gestiona los horarios de los artistas que representas personalmente.
         </p>
       </div>
 
-      <AvailabilityManager artists={artists} initialBlocks={blocks} />
+      {artists.length === 0 ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+          <p className="text-sm text-amber-700">
+            No tienes artistas bajo tu gestión. Ve a la sección de <strong>Artistas</strong> y marca
+            como "Gestionado por mí" los artistas que representas personalmente.
+          </p>
+        </div>
+      ) : (
+        <AvailabilityManager artists={artists} initialBlocks={blocks} />
+      )}
     </div>
   );
 }

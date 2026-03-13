@@ -54,7 +54,7 @@ function toEmbedUrl(videoUrl: string, platform: string | null): string | null {
       if (!videoId) return null;
       return `https://www.tiktok.com/embed/v2/${videoId}`;
     }
-  } catch { }
+  } catch {}
 
   return null;
 }
@@ -67,17 +67,13 @@ export default async function ArtistVideos({ artistId }: ArtistVideosProps) {
     .select("id, url, platform")
     .eq("artist_id", Number(artistId));
 
-  if (!videos || videos.length === 0) return null;
-
-  const embeddable = (videos as ArtistVideo[])
-    .map((video) => ({
+  const embeddable = (videos as ArtistVideo[] | null)
+    ?.map((video) => ({
       id: video.id,
       embedSrc: toEmbedUrl(video.url, video.platform),
       platform: video.platform,
     }))
-    .filter((v) => v.embedSrc !== null);
-
-  if (embeddable.length === 0) return null;
+    .filter((v) => v.embedSrc !== null) ?? [];
 
   return (
     <div className="space-y-3">
@@ -85,29 +81,36 @@ export default async function ArtistVideos({ artistId }: ArtistVideosProps) {
         Videos
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {embeddable.map((video) => (
-          <div
-            key={video.id}
-            className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
-          >
+      {embeddable.length === 0 ? (
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6 text-sm text-neutral-500">
+          Aún no has agregado videos. Puedes agregar enlaces de YouTube, Vimeo o TikTok para mostrar tu trabajo.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {embeddable.map((video) => (
             <div
-              className={`relative w-full ${video.platform?.toLowerCase() === "tiktok"
-                ? "aspect-[9/16]"
-                : "aspect-video"
-                }`}
+              key={video.id}
+              className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
             >
-              <iframe
-                src={video.embedSrc!}
-                title={`Video — ${video.platform ?? "video"}`}
-                className="absolute inset-0 h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+              <div
+                className={`relative w-full ${
+                  video.platform?.toLowerCase() === "tiktok"
+                    ? "aspect-[9/16]"
+                    : "aspect-video"
+                }`}
+              >
+                <iframe
+                  src={video.embedSrc!}
+                  title={`Video — ${video.platform ?? "video"}`}
+                  className="absolute inset-0 h-full w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

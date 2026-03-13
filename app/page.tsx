@@ -17,6 +17,7 @@ export default async function HomePage({
   let query = supabase
     .from("artists")
     .select("id, slug, name, city, avatar_url, categories ( name )")
+    .eq("status", "approved") // Only show approved artists publicly
     .order("created_at", { ascending: false });
 
   if (searchParams?.q) {

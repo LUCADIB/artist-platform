@@ -3,23 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-interface Artist {
-  id: string;
-  name: string;
-}
-
 interface AvailabilityBlock {
   id: string;
-  artist_id: string;
   date: string;
   start_time: string;
   end_time: string;
   status: string;
-  artists: { name: string } | null;
+  notes: string | null;
 }
 
-interface AvailabilityManagerProps {
-  artists: Artist[];
+interface ArtistAvailabilityManagerProps {
+  artistId: string;
   initialBlocks: AvailabilityBlock[];
 }
 
@@ -34,22 +28,18 @@ function formatTime(time: string): string {
   return time.length > 5 ? time.slice(0, 5) : time;
 }
 
-export function AvailabilityManager({
-  artists,
+export function ArtistAvailabilityManager({
+  artistId,
   initialBlocks,
-}: AvailabilityManagerProps) {
+}: ArtistAvailabilityManagerProps) {
   const router = useRouter();
 
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>(initialBlocks);
-
-  const [artistId, setArtistId] = useState("");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
-
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Sync state when initialBlocks changes (after router.refresh())
@@ -77,7 +67,7 @@ export function AvailabilityManager({
       const res = await fetch("/api/availability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artistId, date, startTime, createdByRole: "admin" }),
+        body: JSON.stringify({ artistId, date, startTime, createdByRole: "artist" }),
       });
 
       const data = await res.json();
@@ -101,11 +91,11 @@ export function AvailabilityManager({
   }
 
   async function handleDelete(id: string) {
-    // Remove immediately from local state for instant feedback
     setBlocks((prev) => prev.filter((b) => b.id !== id));
     setDeletingId(id);
     try {
       await fetch(`/api/availability/${id}`, { method: "DELETE" });
+      router.refresh();
     } finally {
       setDeletingId(null);
     }
@@ -119,30 +109,6 @@ export function AvailabilityManager({
           Bloquear nuevo horario
         </h3>
         <form onSubmit={handleBlock} className="space-y-4">
-          {/* Artist select */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-600">
-              Seleccionar artista
-            </label>
-            <select
-              value={artistId}
-              onChange={(e) => {
-                setArtistId(e.target.value);
-                setError(null);
-                setSuccess(false);
-              }}
-              required
-              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
-            >
-              <option value="">— Seleccionar artista —</option>
-              {artists.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Date */}
           <div>
             <label className="mb-1 block text-xs font-medium text-neutral-600">
@@ -223,7 +189,7 @@ export function AvailabilityManager({
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-neutral-100 bg-neutral-50">
                   <tr>
-                    {["Artista", "Fecha", "Hora inicio", "Hora fin", "Estado", ""].map(
+                    {["Fecha", "Hora inicio", "Hora fin", "Estado", ""].map(
                       (col, i) => (
                         <th
                           key={i}
@@ -241,9 +207,6 @@ export function AvailabilityManager({
                       key={block.id}
                       className="transition hover:bg-neutral-50"
                     >
-                      <td className="px-4 py-3 font-medium text-neutral-900">
-                        {block.artists?.name ?? "—"}
-                      </td>
                       <td className="px-4 py-3 text-neutral-700">
                         {block.date}
                       </td>
@@ -266,7 +229,7 @@ export function AvailabilityManager({
                         >
                           {deletingId === block.id
                             ? "Eliminando…"
-                            : "Eliminar bloqueo"}
+                            : "Eliminar"}
                         </button>
                       </td>
                     </tr>
@@ -284,17 +247,13 @@ export function AvailabilityManager({
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <p className="font-semibold text-neutral-900">
-                      {block.artists?.name ?? "—"}
+                      {block.date}
                     </p>
                     <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700">
                       {STATUS_LABELS[block.status] ?? block.status}
                     </span>
                   </div>
                   <dl className="mb-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                    <div>
-                      <dt className="font-medium text-neutral-400">Fecha</dt>
-                      <dd className="text-neutral-700">{block.date}</dd>
-                    </div>
                     <div>
                       <dt className="font-medium text-neutral-400">
                         Hora inicio

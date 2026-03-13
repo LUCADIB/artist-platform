@@ -1,49 +1,22 @@
-import { createSupabaseServerClient } from '../../../lib/supabaseClient'
-import { LogoutButton } from '../../../components/LogoutButton'
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "../../../lib/supabaseClient";
 
+/**
+ * Artist dashboard index page.
+ * Redirects to the profile page which is the main entry point.
+ */
 export default async function ArtistDashboardPage() {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient();
 
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession();
 
-  const { data: profile } = session
-    ? await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-    : { data: null }
+  // Middleware handles auth, but double-check here
+  if (!session) {
+    redirect("/login");
+  }
 
-  return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">
-            Panel del artista
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            Bienvenido a tu espacio personal.
-          </p>
-        </div>
-        <LogoutButton />
-      </div>
-
-      {/* Info card */}
-      <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <p className="text-sm text-neutral-500">
-          Sesión iniciada como{' '}
-          <span className="font-medium text-neutral-900">
-            {session?.user.email ?? '—'}
-          </span>{' '}
-          · Rol:{' '}
-          <span className="font-medium text-neutral-900">
-            {profile?.role ?? '—'}
-          </span>
-        </p>
-      </div>
-    </div>
-  )
+  // Redirect to profile page
+  redirect("/dashboard/artist/profile");
 }

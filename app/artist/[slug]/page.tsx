@@ -29,6 +29,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
       "id, name, slug, bio, avatar_url, city, category_id, categories ( name )"
     )
     .eq("slug", params.slug)
+    .eq("status", "approved") // Only show approved artists publicly
     .maybeSingle();
 
   const artist = artistRaw as ArtistWithCategory | null;

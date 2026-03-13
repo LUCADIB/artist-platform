@@ -50,10 +50,12 @@ export async function POST(request: NextRequest) {
     .eq('id', data.user.id)
     .single()
 
-  const role = profile?.role as 'manager' | 'artist' | undefined
+  // Support both 'manager' and 'admin' roles for backward compatibility
+  const role = profile?.role as 'manager' | 'admin' | 'artist' | undefined
+  const isManager = role === 'manager' || role === 'admin'
 
   let redirectTo = '/login'
-  if (role === 'manager') redirectTo = '/dashboard/manager'
+  if (isManager) redirectTo = '/dashboard/manager'
   else if (role === 'artist') redirectTo = '/dashboard/artist'
 
   // Build the final response with proper JSON body + all cookies from interim response

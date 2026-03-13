@@ -9,6 +9,10 @@ interface Artist {
   bio: string | null;
   avatar_url: string | null;
   category_id: string | null;
+  status: string;
+  rejection_reason: string | null;
+  created_by_admin: boolean;
+  managed_by_admin: boolean;
   categories: { id: string; name: string } | null;
 }
 
@@ -23,8 +27,10 @@ export default async function ArtistsPage() {
   const [{ data: artistsData }, { data: categoriesData }] = await Promise.all([
     supabase
       .from("artists")
-      .select("id, name, slug, city, bio, avatar_url, category_id, categories ( id, name )")
-      .order("name", { ascending: true }),
+      .select(
+        "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+      )
+      .order("created_at", { ascending: false }),
     supabase.from("categories").select("id, name").order("name", { ascending: true }),
   ]);
 
@@ -38,7 +44,7 @@ export default async function ArtistsPage() {
           Gestión de artistas
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Crea, edita y elimina artistas de la plataforma.
+          Crea, edita y aprueba artistas de la plataforma.
         </p>
       </div>
 

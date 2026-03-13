@@ -30,10 +30,17 @@ export function Navbar() {
           </Link>
 
           <Link
+            href="/register/artist"
+            className="transition hover:text-primary-600"
+          >
+            Registrarse
+          </Link>
+
+          <Link
             href="/login"
             className="transition hover:text-primary-600"
           >
-            Login manager
+            Login
           </Link>
 
           <Link
@@ -47,6 +54,13 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         <div className="flex items-center gap-2 md:hidden">
+          <Link
+            href="/register/artist"
+            className="text-xs font-medium text-neutral-700 hover:text-primary-600"
+          >
+            Registrarse
+          </Link>
+
           <Link
             href="/login"
             className="text-xs font-medium text-neutral-700 hover:text-primary-600"
