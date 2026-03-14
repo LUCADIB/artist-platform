@@ -150,15 +150,12 @@ export function BookingRequestForm({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
       <h2 className="mb-1 text-base font-semibold text-neutral-900 sm:text-lg">
-        Solicitar reserva
+        ¡Ahorra tiempo, dinos fecha y hora y te confirmamos disponibilidad!
       </h2>
       <p className="mb-4 text-xs text-neutral-600 sm:text-sm">
-        Completa el formulario para solicitar una reserva con {artistName}.
-      </p>
-      <p className="mb-4 mt-1 text-xs font-semibold text-neutral-800 sm:text-sm">
         Aquí puedes ver fechas y horarios disponibles de {artistName}.
       </p>
-
+     
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
