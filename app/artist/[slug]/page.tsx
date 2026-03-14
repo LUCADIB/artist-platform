@@ -17,6 +17,7 @@ interface ArtistWithCategory {
   avatar_url: string | null;
   city: string | null;
   category_id: string | null;
+  whatsapp: string | null;
   categories: { name: string } | null;
 }
 
@@ -26,7 +27,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   const { data: artistRaw } = await supabase
     .from("artists")
     .select(
-      "id, name, slug, bio, avatar_url, city, category_id, categories ( name )"
+      "id, name, slug, bio, avatar_url, city, category_id, whatsapp, categories ( name )"
     )
     .eq("slug", params.slug)
     .eq("status", "approved") // Only show approved artists publicly
@@ -50,12 +51,13 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   const primaryImage =
     images && images.length > 0 ? images[0].image_url : safeArtist.avatar_url;
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_MANAGER_WHATSAPP_NUMBER;
+  // Use artist's WhatsApp for direct contact (not manager's)
+  const artistWhatsapp = safeArtist.whatsapp;
   const whatsappMessage = encodeURIComponent(
     `Hola, me gustaría hablar sobre una reserva para ${safeArtist.name}.`
   );
-  const whatsappHref = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
+  const whatsappHref = artistWhatsapp
+    ? `https://wa.me/${artistWhatsapp.replace(/\D/g, "")}?text=${whatsappMessage}`
     : undefined;
 
   return (
@@ -110,7 +112,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
               rel="noopener noreferrer"
               className="btn-primary w-full sm:w-auto"
             >
-              Hablar con el manager
+              Contactar directamente
             </a>
           )}
         </div>
@@ -160,7 +162,11 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
 
         {/* Booking form */}
         <div className="w-full lg:w-[360px] xl:w-[400px] lg:mt-[45px]">
-          <BookingRequestForm artistId={safeArtist.id} artistName={safeArtist.name} />
+          <BookingRequestForm
+            artistId={safeArtist.id}
+            artistName={safeArtist.name}
+            artistWhatsapp={safeArtist.whatsapp}
+          />
         </div>
       </section>
     </div>

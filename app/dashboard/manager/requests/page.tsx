@@ -12,7 +12,7 @@ interface BookingRequest {
   city: string;
   status: Status;
   created_at: string;
-  artists: { name: string } | null;
+  artists: { id: string; name: string; managed_by_admin: boolean } | null;
 }
 
 const StatusBadge = ({ status }: { status: Status }) => {
@@ -38,12 +38,67 @@ const StatusBadge = ({ status }: { status: Status }) => {
 export default async function RequestsPage() {
   const supabase = await createSupabaseServerClient();
 
-  const { data: requests } = await supabase
+  // Get current user and check role
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let profile = null;
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    profile = data;
+  }
+
+  const role = profile?.role as string | undefined;
+  const isAdmin = role === "admin";
+  const isManager = role === "manager";
+
+  // Admin sees all requests, Manager sees only requests for artists they manage
+  let requestsQuery = supabase
     .from("booking_requests")
     .select(
-      "id, client_name, client_phone, event_date, event_time, city, status, created_at, artists ( name )"
+      "id, client_name, client_phone, event_date, event_time, city, status, created_at, artists ( id, name, managed_by_admin )"
     )
     .order("created_at", { ascending: false });
+
+  // If manager (not admin), filter to only show requests for managed artists
+  if (isManager && !isAdmin) {
+    // Get IDs of artists managed by this manager
+    const { data: managedArtists } = await supabase
+      .from("artists")
+      .select("id")
+      .eq("managed_by_admin", true);
+
+    const managedArtistIds = (managedArtists ?? []).map((a) => a.id);
+
+    if (managedArtistIds.length > 0) {
+      requestsQuery = requestsQuery.in("artist_id", managedArtistIds);
+    } else {
+      // No managed artists, return empty
+      const bookings: BookingRequest[] = [];
+      return (
+        <div>
+          <div className="mb-6">
+            <h1 className="text-xl font-bold tracking-tight text-neutral-900 sm:text-2xl">
+              Solicitudes de reserva
+            </h1>
+            <p className="mt-1 text-sm text-neutral-500">
+              Gestiona y actualiza el estado de cada solicitud.
+            </p>
+          </div>
+          <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white">
+            <p className="text-sm text-neutral-400">No hay solicitudes todavía.</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  const { data: requests } = await requestsQuery;
 
   const bookings = (requests ?? []) as unknown as BookingRequest[];
 

@@ -1,16 +1,14 @@
 "use client";
 
 interface BookingRequest {
-  id: string;
-  artist_id: string;
+  id: number;
+  artist_id: number;
   client_name: string;
-  client_email: string;
-  client_phone: string | null;
+  client_phone: string;
   event_date: string;
-  event_time: string | null;
-  event_type: string | null;
-  venue: string | null;
-  message: string | null;
+  event_time: string;
+  city: string;
+  message: string;
   status: string;
   created_at: string;
 }
@@ -88,7 +86,7 @@ function RequestCard({ request }: { request: BookingRequest }) {
           <h3 className="font-semibold text-neutral-900">
             {request.client_name}
           </h3>
-          <p className="text-sm text-neutral-500">{request.client_email}</p>
+          <p className="text-sm text-neutral-500">{request.city}</p>
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${status.bg} ${status.text}`}
@@ -110,21 +108,8 @@ function RequestCard({ request }: { request: BookingRequest }) {
             <p className="font-medium text-neutral-900">{request.event_time}</p>
           </div>
         )}
-
-        {request.event_type && (
-          <div>
-            <p className="text-neutral-500">Tipo de evento</p>
-            <p className="font-medium text-neutral-900">{request.event_type}</p>
-          </div>
-        )}
-
-        {request.venue && (
-          <div>
-            <p className="text-neutral-500">Lugar</p>
-            <p className="font-medium text-neutral-900">{request.venue}</p>
-          </div>
-        )}
-
+      
+        
         {request.client_phone && (
           <div>
             <p className="text-neutral-500">Teléfono</p>

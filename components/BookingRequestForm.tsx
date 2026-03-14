@@ -7,6 +7,7 @@ import { AvailabilityPicker } from "./AvailabilityPicker";
 interface BookingRequestFormProps {
   artistId: string;
   artistName: string;
+  artistWhatsapp?: string | null;
 }
 
 /** Convert a "HH:MM" or "HH:MM:SS" string to total minutes since midnight. */
@@ -28,7 +29,8 @@ function isWithinBlockedWindow(
 
 export function BookingRequestForm({
   artistId,
-  artistName
+  artistName,
+  artistWhatsapp,
 }: BookingRequestFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -273,15 +275,18 @@ export function BookingRequestForm({
         >
           {isSubmitting ? "Enviando..." : "Enviar solicitud"}
         </button>
-        <a
-          href={`https://wa.me/593993737070?text=${encodeURIComponent(
-            `Hola, quiero información sobre ${artistName}`
-          )}`}
-          target="_blank"
-          className="mt-3 block text-center text-sm text-primary-600 underline hover:text-primary-700"
-        >
-          ¿Prefieres hablar directo? Contactar Manager
-        </a>
+        {artistWhatsapp && (
+          <a
+            href={`https://wa.me/${artistWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
+              `Hola, quiero información sobre ${artistName}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 block text-center text-sm text-primary-600 underline hover:text-primary-700"
+          >
+            ¿Prefieres hablar directo? Contactar directamente
+          </a>
+        )}
       </form>
     </div>
   );

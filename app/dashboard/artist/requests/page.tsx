@@ -7,20 +7,26 @@ export const dynamic = "force-dynamic";
 export default async function ArtistRequestsPage() {
   const supabase = await createSupabaseServerClient();
 
+  // Use getUser() instead of getSession() for reliable server-side auth
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (authError || !user) {
     redirect("/login");
   }
 
   // Fetch the artist record associated with this user
-  const { data: artist } = await supabase
+  const { data: artist, error: artistError } = await supabase
     .from("artists")
     .select("id, name")
-    .eq("profile_id", session.user.id)
-    .maybeSingle();
+    .eq("profile_id", user.id)
+    .single();
+
+  if (artistError) {
+    console.error("[Artist Requests] Error fetching artist:", artistError);
+  }
 
   if (!artist) {
     return (
@@ -42,14 +48,20 @@ export default async function ArtistRequestsPage() {
     );
   }
 
+  
+
   // Fetch booking requests for this artist
-  const { data: requests } = await supabase
-    .from("booking_requests")
-    .select(
-      "id, artist_id, client_name, client_email, client_phone, event_date, event_time, event_type, venue, message, status, created_at"
-    )
-    .eq("artist_id", artist.id)
-    .order("created_at", { ascending: false });
+  // RLS policy allows artists to read their own requests
+  const { data: requests, error: requestsError } = await supabase
+  .from("booking_requests")
+  .select(
+    "id, artist_id, client_name, client_phone, event_date, event_time, city, message, status, created_at"
+  )
+  .eq("artist_id", artist.id)
+  .order("created_at", { ascending: false });
+  if (requestsError) {
+    console.error("[Artist Requests] Error fetching requests:", requestsError);
+  }
 
   return (
     <div>
