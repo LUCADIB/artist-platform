@@ -139,7 +139,7 @@ export function VideoLinksManager({
             handleAddVideo();
           }
         }}
-        required
+        
         className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
       />
       <button

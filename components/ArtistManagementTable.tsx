@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createSupabaseBrowserClient } from "../lib/supabaseBrowserClient";
 import { ArtistForm } from "./ArtistForm";
 import { DeleteArtistButton } from "./DeleteArtistButton";
 import type { VideoData } from "./VideoLinksManager";
@@ -259,7 +260,7 @@ function ManagedToggle({
 }
 
 export function ArtistManagementTable({
-  artists,
+  artists: initialArtists,
   categories: initialCategories,
 }: ArtistManagementTableProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -268,6 +269,86 @@ export function ArtistManagementTable({
   const [videosLoading, setVideosLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [artists, setArtists] = useState<Artist[]>(initialArtists);
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search input (300ms)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Fetch artists when debounced query changes
+  const fetchArtists = useCallback(async (query: string) => {
+    const supabase = createSupabaseBrowserClient();
+
+    if (!query) {
+      // No query: fetch all artists
+      const { data } = await supabase
+        .from("artists")
+        .select(
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+        )
+        .order("created_at", { ascending: false });
+      setArtists((data ?? []) as unknown as Artist[]);
+      return;
+    }
+
+    // Search by name, city, or category name
+    const likePattern = `%${query}%`;
+
+    // Get category IDs that match the query
+    const { data: matchingCategories } = await supabase
+      .from("categories")
+      .select("id")
+      .ilike("name", likePattern);
+
+    const categoryIds = (matchingCategories ?? []).map((c) => c.id);
+
+    // Build OR query for name, city, and category_id
+    let queryBuilder;
+    if (categoryIds.length > 0) {
+      // Include category filter in OR query
+      queryBuilder = supabase
+        .from("artists")
+        .select(
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+        )
+        .or(`name.ilike.%${query}%,city.ilike.%${query}%,category_id.in.(${categoryIds.join(",")})`);
+    } else {
+      // No matching categories, only search name and city
+      queryBuilder = supabase
+        .from("artists")
+        .select(
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+        )
+        .or(`name.ilike.%${query}%,city.ilike.%${query}%`);
+    }
+
+    const { data } = await queryBuilder.order("created_at", { ascending: false });
+    setArtists((data ?? []) as unknown as Artist[]);
+  }, []);
+
+  useEffect(() => {
+    setIsSearching(true);
+    fetchArtists(debouncedQuery).finally(() => setIsSearching(false));
+  }, [debouncedQuery, fetchArtists]);
 
   // Fetch videos when editing artist changes
   useEffect(() => {
@@ -306,6 +387,40 @@ export function ArtistManagementTable({
 
   return (
     <div className="space-y-4" key={refreshKey}>
+      {/* Search input */}
+      <div className="relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar artista..."
+          className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+        />
+        {isSearching && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <svg
+              className="h-4 w-4 animate-spin text-neutral-400"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          </div>
+        )}
+      </div>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm text-neutral-500">
@@ -365,9 +480,36 @@ export function ArtistManagementTable({
       )}
 
       {/* Table */}
-      {artists.length === 0 ? (
+      {isSearching ? (
+        <div className="flex h-40 items-center justify-center rounded-xl border border-neutral-200 bg-white">
+          <div className="flex items-center gap-2 text-sm text-neutral-400">
+            <svg
+              className="h-4 w-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            Buscando...
+          </div>
+        </div>
+      ) : artists.length === 0 ? (
         <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white">
-          <p className="text-sm text-neutral-400">No hay artistas todavía.</p>
+          <p className="text-sm text-neutral-400">
+            {debouncedQuery ? "No se encontraron artistas." : "No hay artistas todavía."}
+          </p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
