@@ -47,7 +47,7 @@ const artist = artistData?.[0];
   // Fetch existing availability blocks for this artist (all records, no role filter)
   const { data: availabilityBlocks, error } = await supabase
   .from("availability")
-  .select("id, date, start_time, end_time, status")
+  .select("id, date, start_time, end_time, status, notes")
   .eq("artist_id", artist.id)
   .order("date", { ascending: true })
   .order("start_time", { ascending: true });
