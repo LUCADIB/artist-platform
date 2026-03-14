@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../lib/supabaseBrowserClient";
 import { ArtistForm } from "./ArtistForm";
 import { DeleteArtistButton } from "./DeleteArtistButton";
@@ -201,6 +202,11 @@ function ManagedToggle({
   const [isManaged, setIsManaged] = useState(initialValue);
   const [loading, setLoading] = useState(false);
 
+  // Sync local state with prop when server data refreshes
+  useEffect(() => {
+    setIsManaged(initialValue);
+  }, [initialValue]);
+
   async function handleToggle() {
     setLoading(true);
     try {
@@ -278,6 +284,11 @@ function FeaturedRankInput({
   );
   const [loading, setLoading] = useState(false);
 
+  // Sync local state with prop when server data refreshes
+  useEffect(() => {
+    setRank(initialRank !== null ? String(initialRank) : "");
+  }, [initialRank]);
+
   async function handleBlur() {
     const newRank = rank === "" ? null : parseInt(rank, 10);
 
@@ -329,6 +340,7 @@ export function ArtistManagementTable({
   artists: initialArtists,
   categories: initialCategories,
 }: ArtistManagementTableProps) {
+  const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
   const [editingVideos, setEditingVideos] = useState<VideoData[]>([]);
@@ -342,6 +354,15 @@ export function ArtistManagementTable({
   const [artists, setArtists] = useState<Artist[]>(initialArtists);
   const [isSearching, setIsSearching] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync local state with server props when they change (after router.refresh())
+  useEffect(() => {
+    setArtists(initialArtists);
+  }, [initialArtists]);
+
+  useEffect(() => {
+    setCategories(initialCategories);
+  }, [initialCategories]);
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -448,7 +469,7 @@ export function ArtistManagementTable({
 
   function handleRefresh() {
     setRefreshKey((k) => k + 1);
-    window.location.reload();
+    router.refresh();
   }
 
   return (
@@ -632,7 +653,7 @@ export function ArtistManagementTable({
                       <FeaturedRankInput
                         artistId={artist.id}
                         initialRank={artist.home_featured_rank}
-                        onUpdated={() => {}}
+                        onUpdated={handleRefresh}
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -724,7 +745,7 @@ export function ArtistManagementTable({
                     <FeaturedRankInput
                       artistId={artist.id}
                       initialRank={artist.home_featured_rank}
-                      onUpdated={() => {}}
+                      onUpdated={handleRefresh}
                     />
                   </div>
                   <ManagedToggle
