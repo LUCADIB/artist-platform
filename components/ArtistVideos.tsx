@@ -1,60 +1,95 @@
 import { createSupabaseServerClient } from "../lib/supabaseClient";
+import { isVerticalPlatform, type VideoPlatform } from "../lib/parseVideoUrl";
 
 interface ArtistVideo {
   id: string;
-  url: string;
+  url: string | null;
   platform: string | null;
+  embed_url: string | null;
+  video_id: string | null;
 }
 
 interface ArtistVideosProps {
   artistId: string;
 }
 
+const PLATFORM_LABELS: Record<string, string> = {
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  facebook: "Facebook",
+  instagram: "Instagram",
+  vimeo: "Vimeo",
+};
+
 /**
- * Converts a raw watch / share URL into an embeddable iframe src.
- * Supports YouTube, Vimeo and TikTok.
+ * Fallback embed URL generator for legacy records without embed_url.
+ * Uses simple parsing to generate embed URL from the original url field.
  */
-function toEmbedUrl(videoUrl: string, platform: string | null): string | null {
-  const normalizedPlatform = (platform ?? "").toLowerCase().trim();
-
+function generateFallbackEmbedUrl(videoUrl: string, platform: string | null): string | null {
   try {
+    const url = new URL(videoUrl);
+    const normalizedPlatform = (platform || "").toLowerCase();
+
     // YouTube
-    if (
-      normalizedPlatform === "youtube" ||
-      videoUrl.includes("youtube.com") ||
-      videoUrl.includes("youtu.be")
-    ) {
+    if (normalizedPlatform === "youtube" || url.hostname.includes("youtube.com") || url.hostname === "youtu.be") {
       let videoId: string | null = null;
-
-      const urlObj = new URL(videoUrl);
-      if (urlObj.hostname === "youtu.be") {
-        videoId = urlObj.pathname.slice(1).split("?")[0];
+      if (url.hostname === "youtu.be") {
+        videoId = url.pathname.slice(1).split("?")[0];
+      } else if (url.pathname.startsWith("/embed/")) {
+        videoId = url.pathname.replace("/embed/", "").split("/")[0];
+      } else if (url.pathname.startsWith("/shorts/")) {
+        videoId = url.pathname.replace("/shorts/", "").split("/")[0];
       } else {
-        videoId = urlObj.searchParams.get("v");
+        videoId = url.searchParams.get("v");
       }
-
-      if (!videoId) return null;
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-
-    // Vimeo
-    if (normalizedPlatform === "vimeo" || videoUrl.includes("vimeo.com")) {
-      const urlObj = new URL(videoUrl);
-      const videoId = urlObj.pathname.split("/").filter(Boolean).pop();
-      if (!videoId) return null;
-      return `https://player.vimeo.com/video/${videoId}`;
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
     }
 
     // TikTok
-    if (normalizedPlatform === "tiktok" || videoUrl.includes("tiktok.com")) {
-      const urlObj = new URL(videoUrl);
-      const parts = urlObj.pathname.split("/").filter(Boolean);
+    if (normalizedPlatform === "tiktok" || url.hostname.includes("tiktok.com")) {
+      const parts = url.pathname.split("/").filter(Boolean);
       const videoIndex = parts.indexOf("video");
-      const videoId = videoIndex !== -1 ? parts[videoIndex + 1] : null;
-      if (!videoId) return null;
-      return `https://www.tiktok.com/embed/v2/${videoId}`;
+      if (videoIndex !== -1 && parts[videoIndex + 1]) {
+        return `https://www.tiktok.com/embed/v2/${parts[videoIndex + 1]}`;
+      }
     }
-  } catch {}
+
+    // Facebook
+    if (normalizedPlatform === "facebook" || url.hostname.includes("facebook.com")) {
+      const parts = url.pathname.split("/").filter(Boolean);
+      // facebook.com/watch/?v=ID
+      if (url.searchParams.has("v")) {
+        return `https://www.facebook.com/plugins/video.php?href=https://www.facebook.com/watch/?v=${url.searchParams.get("v")}`;
+      }
+      // facebook.com/username/videos/ID
+      const videosIndex = parts.indexOf("videos");
+      if (videosIndex !== -1 && parts[videosIndex + 1]) {
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(videoUrl)}`;
+      }
+      // facebook.com/reel/ID
+      if (parts[0] === "reel" && parts[1]) {
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(videoUrl)}`;
+      }
+    }
+
+    // Instagram
+    if (normalizedPlatform === "instagram" || url.hostname.includes("instagram.com")) {
+      const parts = url.pathname.split("/").filter(Boolean);
+      if ((parts[0] === "reel" || parts[0] === "reels") && parts[1]) {
+        return `https://www.instagram.com/reel/${parts[1]}/embed`;
+      }
+    }
+
+    // Vimeo
+    if (normalizedPlatform === "vimeo" || url.hostname.includes("vimeo.com")) {
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (parts[0] && /^\d+$/.test(parts[0])) {
+        return `https://player.vimeo.com/video/${parts[0]}`;
+      }
+    }
+  } catch {
+    // Silently fail for invalid URLs
+  }
 
   return null;
 }
@@ -63,17 +98,44 @@ export default async function ArtistVideos({ artistId }: ArtistVideosProps) {
   const supabase = await createSupabaseServerClient();
 
   const { data: videos } = await supabase
+  
     .from("artist_videos")
-    .select("id, url, platform")
-    .eq("artist_id", Number(artistId));
+  .select("id, url, platform, embed_url, video_id")
+  .eq("artist_id", artistId)
+  .order("created_at", { ascending: true });
+    
+   
+  if (!videos || videos.length === 0) {
+    return null;
+  }
 
-  const embeddable = (videos as ArtistVideo[] | null)
-    ?.map((video) => ({
-      id: video.id,
-      embedSrc: toEmbedUrl(video.url, video.platform),
-      platform: video.platform,
-    }))
-    .filter((v) => v.embedSrc !== null) ?? [];
+  // Process videos - use embed_url if available, otherwise fallback
+  const embeddable = (videos as ArtistVideo[])
+    .map((video) => {
+      const platform = (video.platform?.toLowerCase() || "youtube") as VideoPlatform;
+      const isVertical = isVerticalPlatform(platform);
+
+      // Use embed_url directly if available
+      let embedSrc = video.embed_url;
+
+      // Fallback: generate from url if embed_url is null
+      if (!embedSrc && video.url) {
+        embedSrc = generateFallbackEmbedUrl(video.url, video.platform);
+      }
+
+      return {
+        id: video.id,
+        embedSrc,
+        platform,
+        isVertical,
+      };
+    })
+    
+    .filter((v) => v.embedSrc !== null);
+
+  if (embeddable.length === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-3">
@@ -81,36 +143,28 @@ export default async function ArtistVideos({ artistId }: ArtistVideosProps) {
         Videos
       </h2>
 
-      {embeddable.length === 0 ? (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6 text-sm text-neutral-500">
-          Aún no has agregado videos. Puedes agregar enlaces de YouTube, Vimeo o TikTok para mostrar tu trabajo.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {embeddable.map((video) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {embeddable.map((video) => (
+          <div
+            key={video.id}
+            className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
+          >
             <div
-              key={video.id}
-              className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
+              className={`relative w-full ${
+                video.isVertical ? "aspect-[9/16]" : "aspect-video"
+              }`}
             >
-              <div
-                className={`relative w-full ${
-                  video.platform?.toLowerCase() === "tiktok"
-                    ? "aspect-[9/16]"
-                    : "aspect-video"
-                }`}
-              >
-                <iframe
-                  src={video.embedSrc!}
-                  title={`Video — ${video.platform ?? "video"}`}
-                  className="absolute inset-0 h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
+              <iframe
+                src={video.embedSrc!}
+                title={`Video — ${PLATFORM_LABELS[video.platform] || "video"}`}
+                className="absolute inset-0 h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

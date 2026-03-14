@@ -3,16 +3,11 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ArtistVideosManager from "./ArtistVideosManager";
+import type { VideoData } from "./VideoLinksManager";
 
 interface Category {
   id: string;
   name: string;
-}
-
-interface ArtistVideo {
-  id: string;
-  url: string;
-  platform: string;
 }
 
 interface ArtistData {
@@ -32,7 +27,7 @@ interface ArtistData {
 interface ArtistProfileFormProps {
   artist: ArtistData;
   categories: Category[];
-  initialVideos?: ArtistVideo[];
+  initialVideos?: VideoData[];
 }
 
 export function ArtistProfileForm({ 

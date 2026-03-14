@@ -1,17 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { VideoLinksManager, type VideoData } from "./VideoLinksManager";
 
 interface Category {
   id: string;
   name: string;
-}
-
-interface Video {
-  id?: string;
-  url: string;
-  platform: string;
 }
 
 interface ArtistFormData {
@@ -26,15 +21,15 @@ interface ArtistFormData {
 interface ArtistFormProps {
   initialCategories: Category[];
   initialData?: ArtistFormData & { id: string };
+  initialVideos?: VideoData[];
   onCancel: () => void;
   onCategoryCreated?: (category: Category) => void;
 }
 
-const PLATFORMS = ["YouTube", "Vimeo", "TikTok"];
-
 export function ArtistForm({
   initialCategories,
   initialData,
+  initialVideos = [],
   onCancel,
   onCategoryCreated,
 }: ArtistFormProps) {
@@ -55,9 +50,8 @@ export function ArtistForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(initialData?.avatar_url ?? "");
 
-  // Video state
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [videosLoading, setVideosLoading] = useState(isEditing);
+  // Video state - for editing, videos are managed via VideoLinksManager
+  const [videos, setVideos] = useState<VideoData[]>(initialVideos);
 
   // Category creation state
   const [categories, setCategories] = useState<Category[]>(initialCategories);
@@ -67,21 +61,6 @@ export function ArtistForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Load existing videos when editing
-  useEffect(() => {
-    if (!isEditing || !initialData?.id) {
-      setVideosLoading(false);
-      return;
-    }
-    fetch(`/api/artists/${initialData.id}/videos`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setVideos(data);
-      })
-      .catch(() => { })
-      .finally(() => setVideosLoading(false));
-  }, [isEditing, initialData?.id]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -94,21 +73,6 @@ export function ArtistForm({
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-  }
-
-  // Video management
-  function addVideo() {
-    setVideos((prev) => [...prev, { url: "", platform: "YouTube" }]);
-  }
-
-  function removeVideo(index: number) {
-    setVideos((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateVideo(index: number, field: "url" | "platform", value: string) {
-    setVideos((prev) =>
-      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
-    );
   }
 
   // Category creation
@@ -201,17 +165,8 @@ export function ArtistForm({
         }
       }
 
-      // Step 3: Sync videos
-      const videosRes = await fetch(`/api/artists/${artistId}/videos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videos }),
-      });
-
-      if (!videosRes.ok) {
-        const videosJson = await videosRes.json();
-        throw new Error(videosJson.error ?? "Error al guardar los videos");
-      }
+      // Note: Videos are now managed independently via VideoLinksManager
+      // No video syncing needed here
 
       router.refresh();
       onCancel();
@@ -385,74 +340,25 @@ export function ArtistForm({
         </div>
       </div>
 
-      {/* Videos section */}
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+      {/* Videos section - only for editing existing artists */}
+      {isEditing && initialData?.id && (
+        <div className="pt-4 border-t border-neutral-100">
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-600">
             Videos del artista
           </h4>
-          <button
-            type="button"
-            onClick={addVideo}
-            className="inline-flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
-          >
-            + Agregar video
-          </button>
+          <VideoLinksManager
+            artistId={initialData.id}
+            initialVideos={videos}
+          />
         </div>
+      )}
 
-        {videosLoading ? (
-          <p className="text-xs text-neutral-400">Cargando videos…</p>
-        ) : videos.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-neutral-200 py-4 text-center text-xs text-neutral-400">
-            Sin videos. Haz clic en &quot;Agregar video&quot; para añadir uno.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {videos.map((video, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={video.url}
-                  onChange={(e) => updateVideo(index, "url", e.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
-                  className={`${inputClass} flex-1`}
-                />
-                <select
-                  value={video.platform}
-                  onChange={(e) => updateVideo(index, "platform", e.target.value)}
-                  className="rounded-lg border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition"
-                >
-                  {PLATFORMS.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => removeVideo(index)}
-                  className="rounded-md border border-red-200 bg-red-50 p-2 text-red-500 transition hover:bg-red-100"
-                  title="Eliminar video"
-                >
-                  <svg
-                    className="h-3.5 w-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Note for new artists */}
+      {!isEditing && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Podrás agregar videos después de crear el artista.
+        </div>
+      )}
 
       {error && (
         <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">

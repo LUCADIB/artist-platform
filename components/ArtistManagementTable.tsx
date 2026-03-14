@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArtistForm } from "./ArtistForm";
 import { DeleteArtistButton } from "./DeleteArtistButton";
+import type { VideoData } from "./VideoLinksManager";
 
 interface Category {
   id: string;
@@ -263,8 +264,33 @@ export function ArtistManagementTable({
 }: ArtistManagementTableProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
+  const [editingVideos, setEditingVideos] = useState<VideoData[]>([]);
+  const [videosLoading, setVideosLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Fetch videos when editing artist changes
+  useEffect(() => {
+    if (!editingArtist?.id) {
+      setEditingVideos([]);
+      return;
+    }
+
+    setVideosLoading(true);
+    fetch(`/api/artist-videos?artistId=${editingArtist.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setEditingVideos(data);
+        }
+      })
+      .catch(() => {
+        setEditingVideos([]);
+      })
+      .finally(() => {
+        setVideosLoading(false);
+      });
+  }, [editingArtist?.id]);
 
   function handleCategoryCreated(newCategory: Category) {
     setCategories((prev) => {
@@ -316,20 +342,25 @@ export function ArtistManagementTable({
           <h3 className="mb-4 text-sm font-semibold text-neutral-800">
             Editar artista
           </h3>
-          <ArtistForm
-            initialCategories={categories}
-            initialData={{
-              id: editingArtist.id,
-              name: editingArtist.name,
-              slug: editingArtist.slug ?? "",
-              city: editingArtist.city ?? "",
-              bio: editingArtist.bio ?? "",
-              avatar_url: editingArtist.avatar_url ?? "",
-              category_id: editingArtist.category_id ?? "",
-            }}
-            onCancel={() => setEditingArtist(null)}
-            onCategoryCreated={handleCategoryCreated}
-          />
+          {videosLoading ? (
+            <p className="text-sm text-neutral-400">Cargando datos…</p>
+          ) : (
+            <ArtistForm
+              initialCategories={categories}
+              initialData={{
+                id: editingArtist.id,
+                name: editingArtist.name,
+                slug: editingArtist.slug ?? "",
+                city: editingArtist.city ?? "",
+                bio: editingArtist.bio ?? "",
+                avatar_url: editingArtist.avatar_url ?? "",
+                category_id: editingArtist.category_id ?? "",
+              }}
+              initialVideos={editingVideos}
+              onCancel={() => setEditingArtist(null)}
+              onCategoryCreated={handleCategoryCreated}
+            />
+          )}
         </div>
       )}
 

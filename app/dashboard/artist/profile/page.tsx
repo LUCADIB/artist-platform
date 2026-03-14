@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "../../../../lib/supabaseClient";
 import { ArtistProfileForm } from "../../../../components/ArtistProfileForm";
+import type { VideoData } from "../../../../components/VideoLinksManager";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -47,13 +48,14 @@ export default async function ArtistProfilePage() {
     .order("name");
 
   // Fetch artist videos if artist exists
-  let artistVideos: any[] = [];
+  let artistVideos: VideoData[] = [];
   if (artist) {
     const { data: videos } = await supabase
       .from("artist_videos")
-      .select("id, url, platform")
-      .eq("artist_id", Number(artist.id));
-    artistVideos = videos ?? [];
+      .select("id, url, platform, embed_url, video_id")
+      .eq("artist_id", Number(artist.id))
+      .order("created_at", { ascending: true });
+    artistVideos = (videos ?? []) as VideoData[];
   }
 
   return (

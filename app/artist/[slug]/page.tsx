@@ -142,7 +142,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
             </div>
           )}
 
-          {/* Videos */}
+          {/* Videos */}          
           <ArtistVideos artistId={safeArtist.id} />
 
           {/* Description */}
