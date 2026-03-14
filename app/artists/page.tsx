@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "../../lib/supabaseClient";
+import { applyFeaturedOrdering } from "../../lib/featuredOrdering";
 import { ArtistCard } from "../../components/ArtistCard";
 import { SearchBar } from "../../components/SearchBar";
 
@@ -33,12 +34,16 @@ export default async function ArtistsPage({
 
   let artistsQuery = supabase
     .from("artists")
-    .select("id, slug, name, city, avatar_url, categories ( name )", {
+    .select("id, slug, name, city, avatar_url, home_featured_rank, categories ( name )", {
       count: "exact"
     })
-    .eq("status", "approved") // Only show approved artists publicly
-    .order("created_at", { ascending: false })
-    .range(from, to);
+    .eq("status", "approved"); // Only show approved artists publicly
+
+  // Apply featured ordering: featured artists first, then by creation date
+  artistsQuery = applyFeaturedOrdering(artistsQuery);
+
+  // Apply pagination
+  artistsQuery = artistsQuery.range(from, to);
 
   if (searchParams?.q) {
     artistsQuery = artistsQuery.ilike("name", `%${searchParams.q}%`);

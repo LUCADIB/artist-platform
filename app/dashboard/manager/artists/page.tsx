@@ -13,6 +13,7 @@ interface Artist {
   rejection_reason: string | null;
   created_by_admin: boolean;
   managed_by_admin: boolean;
+  home_featured_rank: number | null;
   categories: { id: string; name: string } | null;
 }
 
@@ -28,7 +29,7 @@ export default async function ArtistsPage() {
     supabase
       .from("artists")
       .select(
-        "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+        "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
       )
       .order("created_at", { ascending: false }),
     supabase.from("categories").select("id, name").order("name", { ascending: true }),

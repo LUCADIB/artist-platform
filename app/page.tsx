@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "../lib/supabaseClient";
+import { applyFeaturedOrdering } from "../lib/featuredOrdering";
 import { ArtistCard } from "../components/ArtistCard";
 import { HeroSection } from "../components/HeroSection";
+import Link from "next/link";
 
 export default async function HomePage({
   searchParams
@@ -14,20 +16,57 @@ export default async function HomePage({
     .select("id, name")
     .order("name");
 
-  let query = supabase
-    .from("artists")
-    .select("id, slug, name, city, avatar_url, categories ( name )")
-    .eq("status", "approved") // Only show approved artists publicly
-    .order("created_at", { ascending: false });
+  // Determine if user is performing a search
+  const isSearching = !!(searchParams?.q || searchParams?.categoryId);
 
-  if (searchParams?.q) {
-    query = query.ilike("name", `%${searchParams.q}%`);
-  }
-  if (searchParams?.categoryId) {
-    query = query.eq("category_id", searchParams.categoryId);
+  let artists;
+
+  if (isSearching) {
+    // When searching: query ALL approved artists, apply filters and featured ordering
+    let searchQuery = supabase
+      .from("artists")
+      .select("id, slug, name, city, avatar_url, home_featured_rank, categories ( name )")
+      .eq("status", "approved");
+
+    // Apply text filter if provided
+    if (searchParams?.q) {
+      searchQuery = searchQuery.ilike("name", `%${searchParams.q}%`);
+    }
+
+    // Apply category filter if provided
+    if (searchParams?.categoryId) {
+      searchQuery = searchQuery.eq("category_id", searchParams.categoryId);
+    }
+
+    // Apply featured ordering (featured artists first)
+    // Fetch 9 to detect if there are more than 8 results
+    searchQuery = applyFeaturedOrdering(searchQuery).limit(9);
+
+    const { data } = await searchQuery;
+    artists = data;
+  } else {
+    // When not searching: show ONLY featured artists, limited to 10
+    let featuredQuery = supabase
+      .from("artists")
+      .select("id, slug, name, city, avatar_url, home_featured_rank, categories ( name )")
+      .eq("status", "approved")
+      .not("home_featured_rank", "is", null);
+
+    featuredQuery = applyFeaturedOrdering(featuredQuery).limit(10);
+
+    const { data } = await featuredQuery;
+    artists = data;
   }
 
-  const { data: artists } = await query;
+  // When searching, detect if there are more results and show only first 8
+  const hasMore = isSearching && (artists?.length ?? 0) > 8;
+  const visibleArtists = hasMore ? artists?.slice(0, 8) : artists;
+
+  // Determine section title and empty state based on search mode
+  const sectionTitle = isSearching ? "Resultados de búsqueda" : "Artistas destacados";
+  const emptyMessage = isSearching
+    ? "No se encontraron artistas"
+    : "Próximamente artistas destacados";
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
@@ -41,7 +80,7 @@ export default async function HomePage({
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900 sm:text-xl">
-              Artistas destacados
+              {sectionTitle}
             </h2>
             <p className="text-xs text-neutral-500 sm:text-sm">
               Explora el catálogo y filtra por categoría para encontrar el match perfecto.
@@ -54,10 +93,10 @@ export default async function HomePage({
             Ver todos los artistas
           </a>
         </div>
-        {artists && artists.length > 0 ? (
+        {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
-              {artists.map((artist: any) => (
+              {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
                   id={artist.id}
@@ -69,14 +108,32 @@ export default async function HomePage({
                 />
               ))}
             </div>
+            {/* Show "Ver más" button when there are more results */}
+            {hasMore && (
+              <div className="mt-6 flex justify-center">
+                <Link
+                  href={{
+                    pathname: "/artists",
+                    query: {
+                      ...(searchParams?.q && { q: searchParams.q }),
+                      ...(searchParams?.categoryId && { categoryId: searchParams.categoryId }),
+                    },
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100"
+                >
+                  {searchParams?.q
+                    ? `Ver más resultados de '${searchParams.q}'`
+                    : searchParams?.categoryId
+                    ? "Ver más artistas de esta categoría"
+                    : "Ver más resultados"}
+                </Link>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1 py-10 text-center">
             <p className="text-sm font-medium text-neutral-700">
-              No se encontraron artistas
-            </p>
-            <p className="text-xs text-neutral-500">
-              Intenta buscar por nombre o categoría.
+              {emptyMessage}
             </p>
           </div>
         )}

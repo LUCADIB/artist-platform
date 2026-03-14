@@ -23,6 +23,7 @@ interface Artist {
   rejection_reason: string | null;
   created_by_admin: boolean;
   managed_by_admin: boolean;
+  home_featured_rank: number | null;
   categories: { id: string; name: string } | null;
 }
 
@@ -259,6 +260,71 @@ function ManagedToggle({
   );
 }
 
+/**
+ * Featured rank input for home page positioning.
+ * Allows setting rank 1-10 or clearing (null) to remove from featured.
+ */
+function FeaturedRankInput({
+  artistId,
+  initialRank,
+  onUpdated,
+}: {
+  artistId: string;
+  initialRank: number | null;
+  onUpdated: () => void;
+}) {
+  const [rank, setRank] = useState<string>(
+    initialRank !== null ? String(initialRank) : ""
+  );
+  const [loading, setLoading] = useState(false);
+
+  async function handleBlur() {
+    const newRank = rank === "" ? null : parseInt(rank, 10);
+
+    // Validate range
+    if (newRank !== null && (newRank < 1 || newRank > 10)) {
+      setRank(initialRank !== null ? String(initialRank) : "");
+      return;
+    }
+
+    // Skip if unchanged
+    if (newRank === initialRank) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/artists/featured", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artistId, rank: newRank }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al actualizar");
+      }
+      onUpdated();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al actualizar");
+      setRank(initialRank !== null ? String(initialRank) : "");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <input
+      type="number"
+      min={1}
+      max={10}
+      value={rank}
+      onChange={(e) => setRank(e.target.value)}
+      onBlur={handleBlur}
+      disabled={loading}
+      placeholder="—"
+      className="w-12 rounded border border-neutral-200 px-2 py-1 text-center text-xs disabled:opacity-50"
+    />
+  );
+}
+
 export function ArtistManagementTable({
   artists: initialArtists,
   categories: initialCategories,
@@ -303,7 +369,7 @@ export function ArtistManagementTable({
       const { data } = await supabase
         .from("artists")
         .select(
-          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
         )
         .order("created_at", { ascending: false });
       setArtists((data ?? []) as unknown as Artist[]);
@@ -328,7 +394,7 @@ export function ArtistManagementTable({
       queryBuilder = supabase
         .from("artists")
         .select(
-          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
         )
         .or(`name.ilike.%${query}%,city.ilike.%${query}%,category_id.in.(${categoryIds.join(",")})`);
     } else {
@@ -336,7 +402,7 @@ export function ArtistManagementTable({
       queryBuilder = supabase
         .from("artists")
         .select(
-          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, categories ( id, name )"
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
         )
         .or(`name.ilike.%${query}%,city.ilike.%${query}%`);
     }
@@ -518,7 +584,7 @@ export function ArtistManagementTable({
             <table className="w-full text-left text-sm">
               <thead className="border-b border-neutral-100 bg-neutral-50">
                 <tr>
-                  {["Nombre", "Estado", "Gestión", "Ciudad", "Categoría", "Acciones"].map(
+                  {["Nombre", "Estado", "Destacado", "Gestión", "Ciudad", "Categoría", "Acciones"].map(
                     (col) => (
                       <th
                         key={col}
@@ -561,6 +627,13 @@ export function ArtistManagementTable({
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={artist.status || "draft"} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <FeaturedRankInput
+                        artistId={artist.id}
+                        initialRank={artist.home_featured_rank}
+                        onUpdated={() => {}}
+                      />
                     </td>
                     <td className="px-4 py-3">
                       <ManagedToggle
@@ -645,7 +718,15 @@ export function ArtistManagementTable({
                     </>
                   )}
                 </div>
-                <div className="mb-3 flex items-center gap-2">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neutral-500">Destacado:</span>
+                    <FeaturedRankInput
+                      artistId={artist.id}
+                      initialRank={artist.home_featured_rank}
+                      onUpdated={() => {}}
+                    />
+                  </div>
                   <ManagedToggle
                     artistId={artist.id}
                     initialValue={artist.managed_by_admin || false}
