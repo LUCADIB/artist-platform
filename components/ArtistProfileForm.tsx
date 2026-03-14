@@ -2,10 +2,17 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ArtistVideosManager from "./ArtistVideosManager";
 
 interface Category {
   id: string;
   name: string;
+}
+
+interface ArtistVideo {
+  id: string;
+  url: string;
+  platform: string;
 }
 
 interface ArtistData {
@@ -25,9 +32,14 @@ interface ArtistData {
 interface ArtistProfileFormProps {
   artist: ArtistData;
   categories: Category[];
+  initialVideos?: ArtistVideo[];
 }
 
-export function ArtistProfileForm({ artist, categories }: ArtistProfileFormProps) {
+export function ArtistProfileForm({ 
+  artist, 
+  categories,
+  initialVideos = []
+}: ArtistProfileFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -154,7 +166,7 @@ export function ArtistProfileForm({ artist, categories }: ArtistProfileFormProps
 
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form id="artist-profile-form" onSubmit={handleSubmit} className="space-y-5">
         {/* Name */}
         <div>
           <label className={labelClass}>Nombre artístico *</label>
@@ -288,8 +300,21 @@ export function ArtistProfileForm({ artist, categories }: ArtistProfileFormProps
             </div>
           </div>
         </div>
+      </form>
 
-        {/* Error/Success messages */}
+      {/* Artist Videos Section */}
+      <div className="mt-8 pt-8 border-t border-neutral-100">
+        <h3 className="mb-4 text-sm font-semibold text-neutral-800 uppercase tracking-wider">
+          Gestión de Videos
+        </h3>
+        <ArtistVideosManager 
+          artistId={artist.id} 
+          initialVideos={initialVideos} 
+        />
+      </div>
+
+      {/* Error/Success messages */}
+      <div className="mt-8 space-y-4">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
@@ -301,31 +326,32 @@ export function ArtistProfileForm({ artist, categories }: ArtistProfileFormProps
             {success}
           </div>
         )}
+      </div>
 
-        {/* Action buttons */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+      {/* Action buttons */}
+      <div className="mt-6 pt-6 border-t border-neutral-100 flex flex-col gap-2 sm:flex-row sm:justify-between">
+        <button
+          form="artist-profile-form"
+          type="submit"
+          disabled={loading}
+          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+        >
+          {loading ? "Guardando…" : "Guardar cambios"}
+        </button>
+
+        {canResubmit && (
           <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+            type="button"
+            onClick={handleResubmit}
+            disabled={resubmitLoading}
+            className="rounded-lg border border-primary-600 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-700 transition hover:bg-primary-100 disabled:opacity-50"
           >
-            {loading ? "Guardando…" : "Guardar cambios"}
+            {resubmitLoading
+              ? "Enviando…"
+              : "Enviar a revisión"}
           </button>
-
-          {canResubmit && (
-            <button
-              type="button"
-              onClick={handleResubmit}
-              disabled={resubmitLoading}
-              className="rounded-lg border border-primary-600 bg-primary-50 px-4 py-2 text-sm font-medium text-primary-700 transition hover:bg-primary-100 disabled:opacity-50"
-            >
-              {resubmitLoading
-                ? "Enviando…"
-                : "Enviar a revisión"}
-            </button>
-          )}
-        </div>
-      </form>
+        )}
+      </div>
     </div>
   );
 }

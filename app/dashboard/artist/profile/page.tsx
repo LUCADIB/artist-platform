@@ -1,7 +1,6 @@
 import { createSupabaseServerClient } from "../../../../lib/supabaseClient";
 import { ArtistProfileForm } from "../../../../components/ArtistProfileForm";
 import { redirect } from "next/navigation";
-import ArtistVideos from "@/components/ArtistVideos";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +46,16 @@ export default async function ArtistProfilePage() {
     .select("id, name")
     .order("name");
 
+  // Fetch artist videos if artist exists
+  let artistVideos = [];
+  if (artist) {
+    const { data: videos } = await supabase
+      .from("artist_videos")
+      .select("id, url, platform")
+      .eq("artist_id", Number(artist.id));
+    artistVideos = videos ?? [];
+  }
+
   return (
     <div>
       {/* Header */}
@@ -73,11 +82,8 @@ export default async function ArtistProfilePage() {
     <ArtistProfileForm
       artist={artist}
       categories={categories ?? []}
+      initialVideos={artistVideos}
     />
-
-    <div className="mt-8">
-      <ArtistVideos artistId={artist.id} />
-    </div>
   </>
 ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
