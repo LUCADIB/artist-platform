@@ -47,7 +47,7 @@ export default async function ArtistProfilePage() {
     .order("name");
 
   // Fetch artist videos if artist exists
-  let artistVideos = [];
+  let artistVideos: any[] = [];
   if (artist) {
     const { data: videos } = await supabase
       .from("artist_videos")
