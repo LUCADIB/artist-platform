@@ -33,17 +33,6 @@ export function HeroSection({
             seleccionados. Gestionamos las reservas y la comunicación para que
             solo tengas que disfrutar del show.
           </p>
-          <div className="flex flex-wrap gap-2 text-[11px] text-neutral-500 sm:gap-3">
-            <span className="rounded-full border border-neutral-200 bg-white px-3 py-1">
-              Multiples artistas
-            </span>
-            <span className="rounded-full border border-neutral-200 bg-white px-3 py-1">
-              Confirmación rápida
-            </span>
-            <span className="rounded-full border border-neutral-200 bg-white px-3 py-1">
-              Pagos seguros
-            </span>
-          </div>
         </div>
 
         <div className="w-full rounded-2xl border border-neutral-200 bg-white/90 p-4 shadow-md backdrop-blur sm:p-5">
@@ -68,4 +57,3 @@ export function HeroSection({
     </section>
   );
 }
-

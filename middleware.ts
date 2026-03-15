@@ -9,12 +9,16 @@ import { createSupabaseMiddlewareClient } from "./lib/supabaseClient";
  * - Protected route access
  * - Role-based dashboard routing
  * - Registration page access control
+ * - Pathname header for Navbar visibility logic
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Base response that we'll potentially modify
   const response = NextResponse.next();
+
+  // Set pathname header for server components to read
+  response.headers.set("x-pathname", pathname);
 
   const supabase = createSupabaseMiddlewareClient(request, response);
 
