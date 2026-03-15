@@ -212,16 +212,16 @@ function ManagedToggle({
     setLoading(true);
     try {
       const newValue = !isManaged;
-      console.log("[ManagedToggle] Sending PUT request to /api/artists/" + artistId, { managed_by_admin: newValue });
+      
       const res = await fetch(`/api/artists/${artistId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // Explicitly send cookies
         body: JSON.stringify({ managed_by_admin: newValue }),
       });
-      console.log("[ManagedToggle] Response status:", res.status, res.statusText);
+     
       const data = await res.json();
-      console.log("[ManagedToggle] Response data:", data);
+     
       if (!res.ok) {
         // Revert optimistic update on error
         throw new Error(data.error || "Error al actualizar");

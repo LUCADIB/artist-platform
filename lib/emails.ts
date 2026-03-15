@@ -19,20 +19,30 @@ export async function sendBookingEmailToArtist({
   eventTime: string;
   city: string;
 }) {
-  await resend.emails.send({
-    from: "QuitoShows <noreply@quitoshows.com>",
-    to: artistEmail,
-    subject: "Nueva solicitud de reserva",
-    html: `
-      <h2>Tienes una nueva solicitud</h2>
-      <p><b>Cliente:</b> ${clientName}</p>
-      <p><b>Teléfono:</b> ${clientPhone}</p>
-      <p><b>Fecha:</b> ${eventDate}</p>
-      <p><b>Hora:</b> ${eventTime}</p>
-      <p><b>Ciudad:</b> ${city}</p>
-      <p>Ingresa a tu dashboard para verla.</p>
-    `,
-  });
+  console.log(`[Email] Sending booking notification to: ${artistEmail} (${artistName})`);
+
+  try {
+    const result = await resend.emails.send({
+      from: "QuitoShows <noreply@quitoshows.com>",
+      to: artistEmail,
+      subject: "Nueva solicitud de reserva",
+      html: `
+        <h2>Tienes una nueva solicitud</h2>
+        <p><b>Cliente:</b> ${clientName}</p>
+        <p><b>Teléfono:</b> ${clientPhone}</p>
+        <p><b>Fecha:</b> ${eventDate}</p>
+        <p><b>Hora:</b> ${eventTime}</p>
+        <p><b>Ciudad:</b> ${city}</p>
+        <p>Ingresa a tu dashboard para verla.</p>
+      `,
+    });
+
+    console.log(`[Email] Successfully sent to ${artistEmail}:`, result.data?.id);
+    return { success: true, id: result.data?.id };
+  } catch (error) {
+    console.error(`[Email] Failed to send to ${artistEmail}:`, error);
+    return { success: false, error };
+  }
 }
 
 /**

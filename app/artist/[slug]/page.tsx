@@ -56,25 +56,46 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   /**
    * 📞 Contact routing logic:
    *
-   * If artist.managed_by_admin === true:
+   * If artist.managed_by_admin === true AND manager_profile_id exists:
    *   - Use manager's phone (from profiles.phone)
    * Else:
    *   - Use artist's whatsapp
+   *
+   * Fallbacks:
+   *   - If manager_profile_id is null but managed_by_admin is true → fallback to artist whatsapp
+   *   - If manager phone is null → hide WhatsApp button (contactWhatsapp = null)
    */
   let contactWhatsapp: string | null = null;
 
   if (safeArtist.managed_by_admin && safeArtist.manager_profile_id) {
     // Artist is managed - use manager's phone
-    const { data: managerProfile } = await supabase
+    console.log(`[Artist Page] Artist ${safeArtist.name} is managed by: ${safeArtist.manager_profile_id}`);
+
+    const { data: managerProfile, error: profileError } = await supabase
       .from("profiles")
       .select("phone")
       .eq("id", safeArtist.manager_profile_id)
       .single();
 
-    contactWhatsapp = managerProfile?.phone ?? null;
+    if (profileError) {
+      console.error("[Artist Page] Manager profile lookup error:", profileError);
+    }
+
+    if (managerProfile?.phone) {
+      contactWhatsapp = managerProfile.phone;
+      console.log(`[Artist Page] Using manager phone: ${contactWhatsapp}`);
+    } else {
+      // Fallback to artist whatsapp if manager has no phone
+      console.log("[Artist Page] Manager has no phone, falling back to artist whatsapp");
+      contactWhatsapp = safeArtist.whatsapp;
+    }
   } else {
     // Artist is self-managed - use artist's whatsapp
     contactWhatsapp = safeArtist.whatsapp;
+
+    if (safeArtist.managed_by_admin && !safeArtist.manager_profile_id) {
+      console.warn(`[Artist Page] Artist ${safeArtist.name} has managed_by_admin=true but no manager_profile_id - using artist whatsapp`);
+    }
   }
 
   const whatsappMessage = encodeURIComponent(

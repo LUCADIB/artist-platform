@@ -41,56 +41,93 @@ export async function POST(request: NextRequest) {
     }
 
     // 🔥 Fetch artist with management info
-    const { data: artist } = await supabase
+    const { data: artist, error: artistError } = await supabase
       .from("artists")
       .select("name, profile_id, managed_by_admin, manager_profile_id")
       .eq("id", artistId)
       .single();
 
+    if (artistError) {
+      console.error("[Booking] Artist lookup error:", artistError);
+    }
+
     let contactEmail: string | null = null;
     let contactName: string | null = null;
+    let contactPhone: string | null = null;
 
     /**
      * 📧 Booking routing logic:
      *
-     * If artist.managed_by_admin === true:
-     *   - Use manager's email (via manager_profile_id)
+     * If artist.managed_by_admin === true AND manager_profile_id exists:
+     *   - Use manager's email (via manager_profile_id → auth.users.email)
      *   - Use manager's phone for WhatsApp (from profiles.phone)
      * Else:
-     *   - Use artist's email (via profile_id)
+     *   - Use artist's email (via profile_id → auth.users.email)
      *   - Use artist's whatsapp
+     *
+     * Fallbacks:
+     *   - If manager_profile_id is null but managed_by_admin is true → fallback to artist
+     *   - If manager phone is null → hide WhatsApp button
      */
     if (artist?.managed_by_admin && artist?.manager_profile_id) {
       // Artist is managed - route to manager
-      const { data: managerData } = await supabase.auth.admin.getUserById(
+      console.log(`[Booking] Artist ${artist.name} is managed by profile: ${artist.manager_profile_id}`);
+
+      const { data: managerData, error: managerError } = await supabase.auth.admin.getUserById(
         artist.manager_profile_id
       );
+
+      if (managerError) {
+        console.error("[Booking] Manager auth lookup error:", managerError);
+      }
+
       contactEmail = managerData?.user?.email ?? null;
       contactName = "QuitoShows (Gestor)";
 
-      // Also fetch manager's phone for reference
-      const { data: managerProfile } = await supabase
+      // Fetch manager's phone from profiles table
+      const { data: managerProfile, error: profileError } = await supabase
         .from("profiles")
         .select("phone")
         .eq("id", artist.manager_profile_id)
         .single();
 
-      // Log manager phone for debugging (not used in email currently)
-      if (managerProfile?.phone) {
-        console.log(`[Booking] Manager phone: ${managerProfile.phone}`);
+      if (profileError) {
+        console.error("[Booking] Manager profile lookup error:", profileError);
+      }
+
+      contactPhone = managerProfile?.phone ?? null;
+
+      console.log(`[Booking] Manager email: ${contactEmail}, phone: ${contactPhone}`);
+
+      // Fallback: If no manager email, try artist email
+      if (!contactEmail && artist?.profile_id) {
+        console.log("[Booking] No manager email, falling back to artist email");
+        const { data: artistAuth } = await supabase.auth.admin.getUserById(artist.profile_id);
+        contactEmail = artistAuth?.user?.email ?? null;
+        contactName = artist?.name ?? "Artista";
       }
     } else if (artist?.profile_id) {
       // Artist is self-managed - route to artist
-      const { data } = await supabase.auth.admin.getUserById(
+      console.log(`[Booking] Artist ${artist.name} is self-managed`);
+
+      const { data, error: artistAuthError } = await supabase.auth.admin.getUserById(
         artist.profile_id
       );
+
+      if (artistAuthError) {
+        console.error("[Booking] Artist auth lookup error:", artistAuthError);
+      }
+
       contactEmail = data?.user?.email ?? null;
       contactName = artist?.name ?? "Artista";
+      contactPhone = null; // Artist's whatsapp is in artists table, not profiles
+
+      console.log(`[Booking] Artist email: ${contactEmail}`);
     }
 
-    // 🔥 Enviar correo
+    // 🔥 Send email notification
     if (contactEmail) {
-      await sendBookingEmailToArtist({
+      const emailResult = await sendBookingEmailToArtist({
         artistEmail: contactEmail,
         artistName: contactName || artist?.name || "Artista",
         clientName: name,
@@ -99,6 +136,12 @@ export async function POST(request: NextRequest) {
         eventTime,
         city,
       });
+
+      if (!emailResult.success) {
+        console.error("[Booking] Email send failed:", emailResult.error);
+      }
+    } else {
+      console.warn("[Booking] No contact email found - notification not sent");
     }
 
     return NextResponse.json({ success: true }, { status: 201 });

@@ -17,16 +17,13 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  console.log("🔥 PUT ARTIST HIT - START");
-  console.log("[Artist PUT] Artist ID:", params.id);
-  console.log("[Artist PUT] Request URL:", request.url);
-  console.log("[Artist PUT] Request method:", request.method);
+  
   const { id } = params;
 
   let body;
   try {
     body = await request.json();
-    console.log("[Artist PUT] Request body:", body);
+    
   } catch (err) {
     console.error("[Artist PUT] Failed to parse body:", err);
     return NextResponse.json(
@@ -154,8 +151,7 @@ export async function PUT(
 
         // Securely set manager_profile_id from authenticated user
         updateData.manager_profile_id = user.id;
-        console.log("[Artist PUT] Manager profile ID set:", user.id);
-
+       
       } catch (err) {
         console.error("[Artist PUT] Unexpected auth error:", err);
         return NextResponse.json(
