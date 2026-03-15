@@ -12,10 +12,10 @@ import { createSupabaseServerClient } from "../lib/supabaseClient";
 export async function Navbar() {
   // Get current path to conditionally hide on mobile login
   const headersList = await headers();
-  const currentPath = headersList.get("x-pathname") || headersList.get("x-invoke-path") || "";
+  const currentPath = headersList.get("x-pathname") || "";
   
   // Check if we're on the login page
-  const isLoginPage = currentPath === "/login";
+  const isLoginPage = currentPath.startsWith("/login");
   
   // Get session for auth-aware rendering
   const supabase = await createSupabaseServerClient();
@@ -32,18 +32,15 @@ export async function Navbar() {
       }`}
     >
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        {/* Left side - Logo + Navigation */}
+        {/* LEFT: Agencia + Contacto */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex min-w-0 items-center gap-2">
             <span className="rounded-full bg-primary-600 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
               Agencia
             </span>
-            <span className="hidden truncate text-sm font-semibold tracking-tight sm:inline sm:text-base">
-              Artistas
-            </span>
           </Link>
 
-          {/* Desktop Left Nav */}
+          {/* Desktop Left Nav: Contacto */}
           <nav className="hidden items-center gap-5 text-sm text-neutral-700 md:flex">
             <Link
               href="/contact"
@@ -54,7 +51,7 @@ export async function Navbar() {
           </nav>
         </div>
 
-        {/* Right side - Actions */}
+        {/* RIGHT: Artistas + Registrarse + Login/Mi cuenta */}
         <div className="flex items-center gap-2">
           {/* Desktop Right Nav */}
           <nav className="hidden items-center gap-5 text-sm text-neutral-700 md:flex">
