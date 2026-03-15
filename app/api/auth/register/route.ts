@@ -122,6 +122,7 @@ const serviceClient = getServiceClient();
     {
       success: true,
       redirectTo: "/dashboard/artist",
+      artistId: artistData.id,
     },
     { status: 201 }
   );
