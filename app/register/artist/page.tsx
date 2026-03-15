@@ -35,16 +35,53 @@ interface FormErrors {
 }
 
 // =============================================================================
-// Shared Input Classes
+// Shared Styles
 // =============================================================================
 
 const inputClass =
-  "w-full rounded-xl border border-neutral-200 bg-white px-4 py-3.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition";
+  "w-full rounded-xl border border-neutral-200 bg-white px-4 py-3.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-colors duration-150";
 
-const labelClass = "block text-sm font-medium text-neutral-700 mb-2";
+const labelClass = "block text-sm font-medium text-neutral-600 mb-1.5";
 
 // =============================================================================
-// Step 1: Artist Name (Memoized - defined OUTSIDE main component)
+// Progress Indicator - Subtle, minimal
+// =============================================================================
+
+interface ProgressIndicatorProps {
+  currentStep: number;
+  totalSteps: number;
+}
+
+const ProgressIndicator = memo(function ProgressIndicator({
+  currentStep,
+  totalSteps,
+}: ProgressIndicatorProps) {
+  return (
+    <div className="flex items-center justify-center gap-1.5 pt-5 pb-3">
+      {Array.from({ length: totalSteps }).map((_, index) => {
+        const stepNumber = index + 1;
+        const isActive = stepNumber === currentStep;
+        const isCompleted = stepNumber < currentStep;
+        
+        return (
+          <div
+            key={index}
+            className={`rounded-full transition-all duration-200 ease-out ${
+              isActive
+                ? "w-6 h-1.5 bg-neutral-900"
+                : isCompleted
+                ? "w-1.5 h-1.5 bg-neutral-400"
+                : "w-1.5 h-1.5 bg-neutral-200"
+            }`}
+          />
+        );
+      })}
+    </div>
+  );
+});
+
+// =============================================================================
+// Step 1: Artist Name
 // =============================================================================
 
 interface StepNameProps {
@@ -53,6 +90,7 @@ interface StepNameProps {
   disabled: boolean;
   onNameChange: (value: string) => void;
   onErrorClear: () => void;
+  animationKey: number;
 }
 
 const StepName = memo(function StepName({
@@ -61,20 +99,25 @@ const StepName = memo(function StepName({
   disabled,
   onNameChange,
   onErrorClear,
+  animationKey,
 }: StepNameProps) {
   return (
-    <div className="flex flex-col w-full">
-      <div className="px-5 pt-6 pb-4">
-        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
-          Únete a QuitoShows
-        </h2>
-        <p className="text-neutral-500 mb-8 text-base">
-          Empieza a recibir reservas hoy mismo.
+    <div className="w-full">
+      {/* Title Section */}
+      <div key={`title-${animationKey}`} className="step-title-enter px-5">
+        <h1 className="text-[2rem] font-bold text-neutral-900 leading-tight tracking-tight">
+          ¿Cómo te llamas?
+        </h1>
+        <p className="text-neutral-500 text-base mt-1.5">
+          Tu nombre artístico o agrupación
         </p>
+      </div>
 
+      {/* Form Content */}
+      <div key={`content-${animationKey}`} className="step-content-enter px-5 mt-6">
         <div>
           <label htmlFor="name" className={labelClass}>
-            Nombre artístico o agrupación *
+            Nombre artístico *
           </label>
           <input
             id="name"
@@ -93,12 +136,14 @@ const StepName = memo(function StepName({
             className={inputClass}
             placeholder="Ej: Los Hermanos García"
             disabled={disabled}
+            autoFocus
           />
-          <p className="mt-2.5 text-sm text-neutral-500">
-            Este será el nombre visible para los clientes.
-          </p>
-          {error && (
+          {error ? (
             <p className="mt-2 text-sm text-red-600 font-medium">{error}</p>
+          ) : (
+            <p className="mt-2 text-sm text-neutral-400">
+              Este nombre aparecerá en tu perfil público
+            </p>
           )}
         </div>
       </div>
@@ -107,7 +152,7 @@ const StepName = memo(function StepName({
 });
 
 // =============================================================================
-// Step 2: Category + City (Memoized)
+// Step 2: Category + City
 // =============================================================================
 
 interface StepCategoryCityProps {
@@ -122,6 +167,7 @@ interface StepCategoryCityProps {
   onCityChange: (value: string) => void;
   onCategoryErrorClear: () => void;
   onCityErrorClear: () => void;
+  animationKey: number;
 }
 
 const StepCategoryCity = memo(function StepCategoryCity({
@@ -136,38 +182,41 @@ const StepCategoryCity = memo(function StepCategoryCity({
   onCityChange,
   onCategoryErrorClear,
   onCityErrorClear,
+  animationKey,
 }: StepCategoryCityProps) {
   return (
-    <div className="flex flex-col w-full">
-      <div className="px-5 pt-6 pb-4">
-        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
-          Cuéntanos qué haces
-        </h2>
-        <p className="text-neutral-500 mb-6 text-base">
-          Selecciona tu categoría y ubicación.
+    <div className="w-full">
+      {/* Title Section */}
+      <div key={`title-${animationKey}`} className="step-title-enter px-5">
+        <h1 className="text-[2rem] font-bold text-neutral-900 leading-tight tracking-tight">
+          ¿Qué haces?
+        </h1>
+        <p className="text-neutral-500 text-base mt-1.5">
+          Tu categoría y ciudad
         </p>
+      </div>
 
+      {/* Form Content */}
+      <div key={`content-${animationKey}`} className="step-content-enter px-5 mt-5">
         {/* Category Selection */}
-        <div className="mb-6">
-          <label className={labelClass}>Categoría *</label>
+        <div className="mb-5">
+          <label className={labelClass}>Categoría</label>
 
           {categoriesLoading ? (
             <div className="grid grid-cols-2 gap-2">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="p-4 rounded-xl border-2 border-neutral-100 bg-neutral-50 animate-pulse"
+                  className="p-3.5 rounded-xl border-2 border-neutral-100 bg-neutral-50 animate-pulse"
                 >
                   <div className="h-4 bg-neutral-200 rounded w-3/4" />
                 </div>
               ))}
             </div>
           ) : categories.length === 0 ? (
-            <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50">
-              <p className="text-sm text-neutral-500">
-                No hay categorías disponibles. Puedes continuar sin seleccionar.
-              </p>
-            </div>
+            <p className="text-sm text-neutral-400 py-2">
+              No hay categorías disponibles
+            </p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {categories.map((cat) => (
@@ -178,13 +227,13 @@ const StepCategoryCity = memo(function StepCategoryCity({
                     onCategoryChange(cat.id);
                     if (categoryIdError) onCategoryErrorClear();
                   }}
-                  className={`p-4 rounded-xl border-2 text-left transition-all duration-150 ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all duration-150 ${
                     categoryId === cat.id
-                      ? "border-neutral-900 bg-neutral-50 shadow-sm"
-                      : "border-neutral-200 bg-white hover:border-neutral-300 active:border-neutral-400"
+                      ? "border-neutral-900 bg-neutral-50"
+                      : "border-neutral-200 bg-white active:border-neutral-300"
                   }`}
                 >
-                  <span className="font-medium text-neutral-900">{cat.name}</span>
+                  <span className="font-medium text-neutral-900 text-sm">{cat.name}</span>
                 </button>
               ))}
             </div>
@@ -227,7 +276,7 @@ const StepCategoryCity = memo(function StepCategoryCity({
 });
 
 // =============================================================================
-// Step 3: WhatsApp + Profile Photo (Memoized)
+// Step 3: WhatsApp + Profile Photo
 // =============================================================================
 
 interface StepWhatsAppPhotoProps {
@@ -240,6 +289,7 @@ interface StepWhatsAppPhotoProps {
   onImageChange: (file: File) => void;
   onWhatsappErrorClear: () => void;
   onProfileImageErrorClear: () => void;
+  animationKey: number;
 }
 
 const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
@@ -252,6 +302,7 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
   onImageChange,
   onWhatsappErrorClear,
   onProfileImageErrorClear,
+  animationKey,
 }: StepWhatsAppPhotoProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -273,19 +324,23 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
   }, [onImageChange, onProfileImageErrorClear]);
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="px-5 pt-6 pb-4">
-        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
-          Haz que los clientes puedan encontrarte
-        </h2>
-        <p className="text-neutral-500 mb-6 text-base">
-          WhatsApp y foto de perfil.
+    <div className="w-full">
+      {/* Title Section */}
+      <div key={`title-${animationKey}`} className="step-title-enter px-5">
+        <h1 className="text-[2rem] font-bold text-neutral-900 leading-tight tracking-tight">
+          Contacto
+        </h1>
+        <p className="text-neutral-500 text-base mt-1.5">
+          WhatsApp y foto de perfil
         </p>
+      </div>
 
+      {/* Form Content */}
+      <div key={`content-${animationKey}`} className="step-content-enter px-5 mt-5">
         {/* WhatsApp Input */}
-        <div className="mb-6">
+        <div className="mb-5">
           <label htmlFor="whatsapp" className={labelClass}>
-            Número de WhatsApp *
+            WhatsApp *
           </label>
           <input
             id="whatsapp"
@@ -305,11 +360,12 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
             placeholder="593999999999"
             disabled={disabled}
           />
-          <p className="mt-2.5 text-sm text-neutral-500">
-            Los clientes te contactarán por este número.
-          </p>
-          {whatsappError && (
+          {whatsappError ? (
             <p className="mt-2 text-sm text-red-600 font-medium">{whatsappError}</p>
+          ) : (
+            <p className="mt-2 text-sm text-neutral-400">
+              Los clientes te contactarán por este número
+            </p>
           )}
         </div>
 
@@ -325,8 +381,8 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
           />
 
           {imagePreview ? (
-            <div className="flex items-center gap-4">
-              <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-neutral-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-neutral-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreview}
@@ -337,19 +393,19 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-3 px-4 rounded-xl border border-neutral-200 text-neutral-700 font-medium hover:bg-neutral-50 active:bg-neutral-100 transition-colors duration-150"
+                className="py-2.5 px-4 rounded-xl border border-neutral-200 text-neutral-600 text-sm font-medium active:bg-neutral-50 transition-colors duration-150"
               >
-                Cambiar foto
+                Cambiar
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full py-8 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-500 hover:border-neutral-400 hover:text-neutral-600 active:bg-neutral-50 transition-colors duration-150 flex flex-col items-center gap-2"
+              className="w-full py-6 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-400 active:border-neutral-400 active:text-neutral-500 active:bg-neutral-50 transition-colors duration-150 flex flex-col items-center gap-1.5"
             >
               <svg
-                className="w-10 h-10"
+                className="w-8 h-8"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -361,13 +417,10 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span className="font-medium">Subir foto</span>
+              <span className="font-medium text-sm">Subir foto</span>
             </button>
           )}
 
-          <p className="mt-2.5 text-sm text-neutral-500">
-            Sube una foto clara o el logo de tu agrupación.
-          </p>
           {profileImageError && (
             <p className="mt-2 text-sm text-red-600 font-medium">{profileImageError}</p>
           )}
@@ -378,7 +431,7 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
 });
 
 // =============================================================================
-// Step 4: Account Credentials (Memoized)
+// Step 4: Account Credentials
 // =============================================================================
 
 interface StepCredentialsProps {
@@ -395,6 +448,7 @@ interface StepCredentialsProps {
   onEmailErrorClear: () => void;
   onPasswordErrorClear: () => void;
   onConfirmPasswordErrorClear: () => void;
+  animationKey: number;
 }
 
 const StepCredentials = memo(function StepCredentials({
@@ -411,24 +465,29 @@ const StepCredentials = memo(function StepCredentials({
   onEmailErrorClear,
   onPasswordErrorClear,
   onConfirmPasswordErrorClear,
+  animationKey,
 }: StepCredentialsProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="px-5 pt-6 pb-4">
-        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
+    <div className="w-full">
+      {/* Title Section */}
+      <div key={`title-${animationKey}`} className="step-title-enter px-5">
+        <h1 className="text-[2rem] font-bold text-neutral-900 leading-tight tracking-tight">
+          Tu cuenta
+        </h1>
+        <p className="text-neutral-500 text-base mt-1.5">
           Crea tus datos de acceso
-        </h2>
-        <p className="text-neutral-500 mb-6 text-base">
-          Usarás estos datos para iniciar sesión.
         </p>
+      </div>
 
+      {/* Form Content */}
+      <div key={`content-${animationKey}`} className="step-content-enter px-5 mt-5">
         {/* Email Input */}
-        <div className="mb-5">
+        <div className="mb-4">
           <label htmlFor="email" className={labelClass}>
-            Correo electrónico *
+            Correo *
           </label>
           <input
             id="email"
@@ -454,7 +513,7 @@ const StepCredentials = memo(function StepCredentials({
         </div>
 
         {/* Password Input */}
-        <div className="mb-5">
+        <div className="mb-4">
           <label htmlFor="password" className={labelClass}>
             Contraseña *
           </label>
@@ -473,14 +532,14 @@ const StepCredentials = memo(function StepCredentials({
                 onPasswordChange(e.target.value);
                 if (passwordError) onPasswordErrorClear();
               }}
-              className={`${inputClass} pr-12`}
+              className={`${inputClass} pr-11`}
               placeholder="Mínimo 6 caracteres"
               disabled={disabled}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 active:text-neutral-700 p-1 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 active:text-neutral-600 p-1"
               tabIndex={-1}
             >
               {showPassword ? (
@@ -503,7 +562,7 @@ const StepCredentials = memo(function StepCredentials({
         {/* Confirm Password Input */}
         <div>
           <label htmlFor="confirmPassword" className={labelClass}>
-            Confirmar contraseña *
+            Confirmar *
           </label>
           <div className="relative">
             <input
@@ -520,14 +579,14 @@ const StepCredentials = memo(function StepCredentials({
                 onConfirmPasswordChange(e.target.value);
                 if (confirmPasswordError) onConfirmPasswordErrorClear();
               }}
-              className={`${inputClass} pr-12`}
+              className={`${inputClass} pr-11`}
               placeholder="Repite tu contraseña"
               disabled={disabled}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 active:text-neutral-700 p-1 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 active:text-neutral-600 p-1"
               tabIndex={-1}
             >
               {showConfirmPassword ? (
@@ -552,7 +611,7 @@ const StepCredentials = memo(function StepCredentials({
 });
 
 // =============================================================================
-// Step 5: Final Confirmation (Memoized)
+// Step 5: Final Confirmation
 // =============================================================================
 
 interface StepConfirmationProps {
@@ -563,6 +622,7 @@ interface StepConfirmationProps {
   email: string;
   imagePreview: string | null;
   error: string | null;
+  animationKey: number;
 }
 
 const StepConfirmation = memo(function StepConfirmation({
@@ -573,19 +633,27 @@ const StepConfirmation = memo(function StepConfirmation({
   email,
   imagePreview,
   error,
+  animationKey,
 }: StepConfirmationProps) {
   return (
-    <div className="flex flex-col w-full">
-      <div className="px-5 pt-6 pb-4">
-        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-4 leading-tight">
-          ¡Estás listo!
-        </h2>
+    <div className="w-full">
+      {/* Title Section */}
+      <div key={`title-${animationKey}`} className="step-title-enter px-5">
+        <h1 className="text-[2rem] font-bold text-neutral-900 leading-tight tracking-tight">
+          ¡Listo!
+        </h1>
+        <p className="text-neutral-500 text-base mt-1.5">
+          Revisa tu información
+        </p>
+      </div>
 
+      {/* Content */}
+      <div key={`content-${animationKey}`} className="step-content-enter px-5 mt-5">
         {/* Summary Card */}
-        <div className="bg-neutral-50 rounded-2xl p-4 mb-5 border border-neutral-100">
-          <div className="flex items-center gap-3 mb-4">
+        <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-100">
+          <div className="flex items-center gap-3 mb-3">
             {imagePreview ? (
-              <div className="w-14 h-14 rounded-xl overflow-hidden border border-neutral-200 shadow-sm">
+              <div className="w-12 h-12 rounded-xl overflow-hidden border border-neutral-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreview}
@@ -594,8 +662,8 @@ const StepConfirmation = memo(function StepConfirmation({
                 />
               </div>
             ) : (
-              <div className="w-14 h-14 rounded-xl bg-neutral-200 flex items-center justify-center">
-                <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-xl bg-neutral-200 flex items-center justify-center">
+                <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
@@ -608,32 +676,28 @@ const StepConfirmation = memo(function StepConfirmation({
             </div>
           </div>
 
-          <div className="space-y-2.5 text-sm">
+          <div className="space-y-2 text-sm border-t border-neutral-200 pt-3">
             <div className="flex justify-between">
-              <span className="text-neutral-500">Ciudad:</span>
+              <span className="text-neutral-500">Ciudad</span>
               <span className="text-neutral-900 font-medium">{city}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">WhatsApp:</span>
+              <span className="text-neutral-500">WhatsApp</span>
               <span className="text-neutral-900 font-medium">{whatsapp}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">Correo:</span>
+              <span className="text-neutral-500">Correo</span>
               <span className="text-neutral-900 font-medium">{email}</span>
             </div>
           </div>
         </div>
 
         {/* Info Box */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mt-4">
           <p className="text-amber-800 text-sm font-medium">
             Tu perfil será revisado antes de publicarse.
           </p>
         </div>
-
-        <p className="text-sm text-neutral-500">
-          Podrás editar tu información y agregar videos luego.
-        </p>
 
         {error && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
@@ -646,44 +710,7 @@ const StepConfirmation = memo(function StepConfirmation({
 });
 
 // =============================================================================
-// Progress Indicator (Memoized) - Enhanced Premium UX
-// =============================================================================
-
-interface ProgressIndicatorProps {
-  currentStep: number;
-  totalSteps: number;
-}
-
-const ProgressIndicator = memo(function ProgressIndicator({
-  currentStep,
-  totalSteps,
-}: ProgressIndicatorProps) {
-  return (
-    <div className="flex items-center justify-center gap-2.5 py-3 px-4">
-      {Array.from({ length: totalSteps }).map((_, index) => {
-        const stepNumber = index + 1;
-        const isActive = stepNumber === currentStep;
-        const isCompleted = stepNumber < currentStep;
-        
-        return (
-          <div
-            key={index}
-            className={`rounded-full transition-all duration-[200ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
-              isActive
-                ? "w-10 h-2.5 bg-neutral-900 shadow-sm"
-                : isCompleted
-                ? "w-2.5 h-2.5 bg-neutral-500"
-                : "w-2.5 h-2.5 bg-neutral-200"
-            }`}
-          />
-        );
-      })}
-    </div>
-  );
-});
-
-// =============================================================================
-// Navigation Buttons (Memoized) - Enhanced CTA Ergonomics
+// Navigation Buttons - Flow naturally after content
 // =============================================================================
 
 interface NavigationButtonsProps {
@@ -693,6 +720,7 @@ interface NavigationButtonsProps {
   onBack: () => void;
   onNext: () => void;
   onSubmit: () => void;
+  animationKey: number;
 }
 
 const NavigationButtons = memo(function NavigationButtons({
@@ -702,44 +730,46 @@ const NavigationButtons = memo(function NavigationButtons({
   onBack,
   onNext,
   onSubmit,
+  animationKey,
 }: NavigationButtonsProps) {
   const isLastStep = currentStep === totalSteps;
   const showBackButton = currentStep > 1;
 
   return (
-    <div className="flex-shrink-0 bg-white border-t border-neutral-100 px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-      <div className={`flex gap-3 ${!showBackButton ? 'justify-end' : ''}`}>
-        {showBackButton && (
-          <button
-            type="button"
-            onClick={onBack}
-            disabled={loading}
-            className="py-3.5 px-5 rounded-xl text-neutral-500 font-medium hover:text-neutral-700 active:text-neutral-900 active:bg-neutral-50 transition-colors duration-150 disabled:opacity-50"
-          >
-            Atrás
-          </button>
+    <div key={`nav-${animationKey}`} className="step-content-enter px-5 pt-8 pb-8">
+      {/* Primary Button */}
+      <button
+        type="button"
+        onClick={isLastStep ? onSubmit : onNext}
+        disabled={loading}
+        className="w-full py-4 rounded-xl bg-neutral-900 text-white font-semibold active:scale-[0.98] transition-transform duration-150 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+      >
+        {loading ? (
+          <>
+            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span>Creando perfil...</span>
+          </>
+        ) : isLastStep ? (
+          "Crear perfil"
+        ) : (
+          "Continuar"
         )}
+      </button>
+
+      {/* Ghost Back Button */}
+      {showBackButton && (
         <button
           type="button"
-          onClick={isLastStep ? onSubmit : onNext}
+          onClick={onBack}
           disabled={loading}
-          className={`${showBackButton ? 'flex-1' : 'w-full'} py-4 px-6 rounded-xl bg-neutral-900 text-white font-semibold shadow-sm shadow-neutral-900/10 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2`}
+          className="w-full py-3 mt-2 text-neutral-500 font-medium active:text-neutral-700 transition-colors duration-150 disabled:opacity-50"
         >
-          {loading ? (
-            <>
-              <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span>Creando perfil...</span>
-            </>
-          ) : isLastStep ? (
-            "Crear perfil"
-          ) : (
-            "Continuar"
-          )}
+          Atrás
         </button>
-      </div>
+      )}
     </div>
   );
 });
@@ -748,13 +778,10 @@ const NavigationButtons = memo(function NavigationButtons({
 // Main Component
 // =============================================================================
 
-type NavigationDirection = 'forward' | 'back' | null;
-
 export default function ArtistRegisterPage() {
   const router = useRouter();
   const desktopFileInputRef = useRef<HTMLInputElement>(null);
   const mobileContainerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   // Form data state
   const [formData, setFormData] = useState<FormData>({
@@ -779,10 +806,7 @@ export default function ArtistRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  // Navigation direction for animations
-  const [navigationDirection, setNavigationDirection] = useState<NavigationDirection>(null);
-  
-  // Animation key to force re-render for step transitions
+  // Animation key for step transitions
   const [animationKey, setAnimationKey] = useState(0);
 
   // Desktop password visibility
@@ -807,22 +831,18 @@ export default function ArtistRegisterPage() {
       });
   }, []);
 
-  // =============================================================================
-  // Scroll Reset on Step Change
-  // =============================================================================
-  
+  // Scroll reset on step change
   useLayoutEffect(() => {
-    // Smooth scroll to top when step changes
-    if (mobileContainerRef.current && navigationDirection) {
+    if (mobileContainerRef.current) {
       mobileContainerRef.current.scrollTo({
         top: 0,
-        behavior: 'instant' // Use instant for smoother perceived transition
+        behavior: 'instant'
       });
     }
-  }, [currentStep, navigationDirection]);
+  }, [currentStep]);
 
   // =============================================================================
-  // Stable Callbacks (prevent re-renders)
+  // Stable Callbacks
   // =============================================================================
 
   const updateFormData = useCallback((updates: Partial<FormData>) => {
@@ -838,7 +858,6 @@ export default function ArtistRegisterPage() {
     });
   }, []);
 
-  // Field-specific callbacks
   const handleNameChange = useCallback((value: string) => {
     updateFormData({ name: value });
   }, [updateFormData]);
@@ -936,17 +955,20 @@ export default function ArtistRegisterPage() {
 
   const goNext = useCallback(() => {
     if (validateStep(currentStep)) {
-      setNavigationDirection('forward');
       setAnimationKey(prev => prev + 1);
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   }, [currentStep, formData, categories.length]);
 
   const goBack = useCallback(() => {
-    setNavigationDirection('back');
+    if (currentStep === 1) {
+      // On step 1, going back exits onboarding
+      router.push("/");
+      return;
+    }
     setAnimationKey(prev => prev + 1);
     setCurrentStep((prev) => Math.max(prev - 1, 1));
-  }, []);
+  }, [currentStep, router]);
 
   // =============================================================================
   // Form Submission
@@ -1026,55 +1048,19 @@ export default function ArtistRegisterPage() {
   // Render
   // =============================================================================
 
-  // Animation class based on navigation direction
-  const stepAnimationClass = navigationDirection === 'forward' 
-    ? 'step-enter' 
-    : navigationDirection === 'back' 
-    ? 'step-enter-back' 
-    : '';
-
   return (
     <>
-      {/* ========== MOBILE WIZARD (hidden on md+) ========== */}
+      {/* ========== MOBILE WIZARD (Focus Mode - Full Screen Overlay) ========== */}
       <div 
         ref={mobileContainerRef}
-        className="min-h-[100dvh] bg-white flex flex-col md:hidden overflow-y-auto"
+        className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden"
       >
-        {/* Header */}
-        <header className="flex-shrink-0 sticky top-0 z-10 bg-white/95 backdrop-blur-sm flex items-center justify-between px-4 py-3 border-b border-neutral-100">
-          {currentStep > 1 ? (
-            <button
-              type="button"
-              onClick={goBack}
-              className="p-2 -ml-2 text-neutral-500 hover:text-neutral-700 active:text-neutral-900 active:bg-neutral-50 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          ) : (
-            <div className="w-10" />
-          )}
+        {/* Progress Indicator - Subtle at top */}
+        <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
-          <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
-
-          <a
-            href="/login"
-            className="text-sm font-medium text-neutral-400 hover:text-neutral-700 transition-colors"
-          >
-            Iniciar sesión
-          </a>
-        </header>
-
-        {/* Step Content - with intelligent vertical layout */}
-        <main 
-          ref={contentRef}
-          className="flex-1 flex flex-col justify-center py-4"
-        >
-          <div 
-            key={animationKey}
-            className={stepAnimationClass}
-          >
+        {/* Step Content */}
+        <div className="min-h-[calc(100dvh-60px)] flex flex-col">
+          <div className="flex-1">
             {currentStep === 1 && (
               <StepName
                 name={formData.name}
@@ -1082,6 +1068,7 @@ export default function ArtistRegisterPage() {
                 disabled={loading}
                 onNameChange={handleNameChange}
                 onErrorClear={() => clearError("name")}
+                animationKey={animationKey}
               />
             )}
             {currentStep === 2 && (
@@ -1097,6 +1084,7 @@ export default function ArtistRegisterPage() {
                 onCityChange={handleCityChange}
                 onCategoryErrorClear={() => clearError("categoryId")}
                 onCityErrorClear={() => clearError("city")}
+                animationKey={animationKey}
               />
             )}
             {currentStep === 3 && (
@@ -1110,6 +1098,7 @@ export default function ArtistRegisterPage() {
                 onImageChange={handleImageChange}
                 onWhatsappErrorClear={() => clearError("whatsapp")}
                 onProfileImageErrorClear={() => clearError("profileImage")}
+                animationKey={animationKey}
               />
             )}
             {currentStep === 4 && (
@@ -1127,6 +1116,7 @@ export default function ArtistRegisterPage() {
                 onEmailErrorClear={() => clearError("email")}
                 onPasswordErrorClear={() => clearError("password")}
                 onConfirmPasswordErrorClear={() => clearError("confirmPassword")}
+                animationKey={animationKey}
               />
             )}
             {currentStep === 5 && (
@@ -1138,23 +1128,25 @@ export default function ArtistRegisterPage() {
                 email={formData.email}
                 imagePreview={imagePreview}
                 error={error}
+                animationKey={animationKey}
               />
             )}
           </div>
-        </main>
 
-        {/* Navigation */}
-        <NavigationButtons
-          currentStep={currentStep}
-          totalSteps={totalSteps}
-          loading={loading}
-          onBack={goBack}
-          onNext={goNext}
-          onSubmit={handleSubmit}
-        />
+          {/* Navigation - Flows naturally after content */}
+          <NavigationButtons
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            loading={loading}
+            onBack={goBack}
+            onNext={goNext}
+            onSubmit={handleSubmit}
+            animationKey={animationKey}
+          />
+        </div>
       </div>
 
-      {/* ========== DESKTOP FORM (hidden below md) ========== */}
+      {/* ========== DESKTOP FORM (unchanged) ========== */}
       <div className="hidden md:flex min-h-[calc(100vh-120px)] items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="rounded-2xl border border-neutral-200 bg-white px-8 py-10 shadow-sm">
