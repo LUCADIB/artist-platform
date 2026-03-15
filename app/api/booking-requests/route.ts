@@ -40,29 +40,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 🔥 Buscar artista
+    // 🔥 Fetch artist with management info
     const { data: artist } = await supabase
       .from("artists")
-      .select("name, profile_id")
+      .select("name, profile_id, managed_by_admin, manager_profile_id")
       .eq("id", artistId)
       .single();
 
-    let artistEmail: string | null = null;
+    let contactEmail: string | null = null;
+    let contactName: string | null = null;
 
-    // 🔥 Obtener email desde auth.users
-    if (artist?.profile_id) {
+    /**
+     * 📧 Booking routing logic:
+     *
+     * If artist.managed_by_admin === true:
+     *   - Use manager's email (via manager_profile_id)
+     *   - Use manager's phone for WhatsApp (from profiles.phone)
+     * Else:
+     *   - Use artist's email (via profile_id)
+     *   - Use artist's whatsapp
+     */
+    if (artist?.managed_by_admin && artist?.manager_profile_id) {
+      // Artist is managed - route to manager
+      const { data: managerData } = await supabase.auth.admin.getUserById(
+        artist.manager_profile_id
+      );
+      contactEmail = managerData?.user?.email ?? null;
+      contactName = "QuitoShows (Gestor)";
+
+      // Also fetch manager's phone for reference
+      const { data: managerProfile } = await supabase
+        .from("profiles")
+        .select("phone")
+        .eq("id", artist.manager_profile_id)
+        .single();
+
+      // Log manager phone for debugging (not used in email currently)
+      if (managerProfile?.phone) {
+        console.log(`[Booking] Manager phone: ${managerProfile.phone}`);
+      }
+    } else if (artist?.profile_id) {
+      // Artist is self-managed - route to artist
       const { data } = await supabase.auth.admin.getUserById(
         artist.profile_id
       );
-
-      artistEmail = data?.user?.email ?? null;
+      contactEmail = data?.user?.email ?? null;
+      contactName = artist?.name ?? "Artista";
     }
 
     // 🔥 Enviar correo
-    if (artistEmail) {
+    if (contactEmail) {
       await sendBookingEmailToArtist({
-        artistEmail,
-        artistName: artist?.name ?? "Artista",
+        artistEmail: contactEmail,
+        artistName: contactName || artist?.name || "Artista",
         clientName: name,
         clientPhone: phone,
         eventDate,

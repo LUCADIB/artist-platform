@@ -21,6 +21,7 @@ interface ArtistData {
   category_id: string | null;
   status: string;
   rejection_reason: string | null;
+  managed_by_admin: boolean;
   categories: { id: string; name: string } | null;
 }
 
@@ -161,6 +162,33 @@ export function ArtistProfileForm({
 
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      {/* Agency Management Badge */}
+      {artist.managed_by_admin && (
+        <div className="mb-6 rounded-lg border border-violet-200 bg-violet-50 p-4">
+          <div className="flex items-center gap-2">
+            <svg
+              className="h-5 w-5 text-violet-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
+            </svg>
+            <p className="text-sm font-medium text-violet-700">
+              Tu perfil está siendo gestionado por la agencia QuitoShows
+            </p>
+          </div>
+          <p className="mt-2 text-xs text-violet-600">
+            El número de WhatsApp y los datos de contacto están siendo administrados por la agencia.
+          </p>
+        </div>
+      )}
+
       <form id="artist-profile-form" onSubmit={handleSubmit} className="space-y-5">
         {/* Name */}
         <div>
@@ -220,16 +248,24 @@ export function ArtistProfileForm({
 
         {/* WhatsApp */}
         <div>
-          <label className={labelClass}>WhatsApp</label>
+          <label className={labelClass}>
+            WhatsApp
+            {artist.managed_by_admin && (
+              <span className="ml-2 text-xs text-violet-600">(Gestionado por agencia)</span>
+            )}
+          </label>
           <input
             type="tel"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
-            className={inputClass}
+            className={`${inputClass} ${artist.managed_by_admin ? "bg-neutral-50 text-neutral-500 cursor-not-allowed" : ""}`}
             placeholder="Número de WhatsApp (ej: 593999999999)"
+            disabled={artist.managed_by_admin}
           />
           <p className="mt-1 text-xs text-neutral-400">
-            Solo visible para el administrador
+            {artist.managed_by_admin
+              ? "La agencia está gestionando tu contacto. Para cambios, comunícate con QuitoShows."
+              : "Solo visible para el administrador"}
           </p>
         </div>
 

@@ -16,6 +16,7 @@ interface ArtistWithCategory {
   category_id: string | null;
   status: string;
   rejection_reason: string | null;
+  managed_by_admin: boolean;
   categories: { id: string; name: string } | null;
 }
 
@@ -34,7 +35,7 @@ export default async function ArtistProfilePage() {
   const { data: artistRaw } = await supabase
     .from("artists")
     .select(
-      "id, name, slug, bio, avatar_url, city, whatsapp, category_id, status, rejection_reason, categories ( id, name )"
+      "id, name, slug, bio, avatar_url, city, whatsapp, category_id, status, rejection_reason, managed_by_admin, categories ( id, name )"
     )
     .eq("profile_id", session.user.id)
     .maybeSingle();

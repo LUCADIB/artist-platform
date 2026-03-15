@@ -18,6 +18,8 @@ interface ArtistWithCategory {
   city: string | null;
   category_id: string | null;
   whatsapp: string | null;
+  managed_by_admin: boolean;
+  manager_profile_id: string | null;
   categories: { name: string } | null;
 }
 
@@ -27,7 +29,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   const { data: artistRaw } = await supabase
     .from("artists")
     .select(
-      "id, name, slug, bio, avatar_url, city, category_id, whatsapp, categories ( name )"
+      "id, name, slug, bio, avatar_url, city, category_id, whatsapp, managed_by_admin, manager_profile_id, categories ( name )"
     )
     .eq("slug", params.slug)
     .eq("status", "approved") // Only show approved artists publicly
@@ -51,13 +53,35 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   const primaryImage =
     images && images.length > 0 ? images[0].image_url : safeArtist.avatar_url;
 
-  // Use artist's WhatsApp for direct contact (not manager's)
-  const artistWhatsapp = safeArtist.whatsapp;
+  /**
+   * 📞 Contact routing logic:
+   *
+   * If artist.managed_by_admin === true:
+   *   - Use manager's phone (from profiles.phone)
+   * Else:
+   *   - Use artist's whatsapp
+   */
+  let contactWhatsapp: string | null = null;
+
+  if (safeArtist.managed_by_admin && safeArtist.manager_profile_id) {
+    // Artist is managed - use manager's phone
+    const { data: managerProfile } = await supabase
+      .from("profiles")
+      .select("phone")
+      .eq("id", safeArtist.manager_profile_id)
+      .single();
+
+    contactWhatsapp = managerProfile?.phone ?? null;
+  } else {
+    // Artist is self-managed - use artist's whatsapp
+    contactWhatsapp = safeArtist.whatsapp;
+  }
+
   const whatsappMessage = encodeURIComponent(
     `Hola, me gustaría hablar sobre una reserva para ${safeArtist.name}.`
   );
-  const whatsappHref = artistWhatsapp
-    ? `https://wa.me/${artistWhatsapp.replace(/\D/g, "")}?text=${whatsappMessage}`
+  const whatsappHref = contactWhatsapp
+    ? `https://wa.me/${contactWhatsapp.replace(/\D/g, "")}?text=${whatsappMessage}`
     : undefined;
 
   return (
@@ -165,7 +189,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
           <BookingRequestForm
             artistId={safeArtist.id}
             artistName={safeArtist.name}
-            artistWhatsapp={safeArtist.whatsapp}
+            artistWhatsapp={contactWhatsapp}
           />
         </div>
       </section>

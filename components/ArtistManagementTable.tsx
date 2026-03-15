@@ -187,8 +187,9 @@ function ApprovalButtons({
 }
 
 /**
- * Toggle button for "Gestionado por mí" (managed_by_admin).
- * When enabled, the artist appears in the manager's availability selector.
+ * Toggle button for "Gestionado por agencia" (managed_by_admin).
+ * When enabled, the artist appears in the manager's availability selector
+ * and all booking contacts are routed to the manager.
  */
 function ManagedToggle({
   artistId,
@@ -211,18 +212,24 @@ function ManagedToggle({
     setLoading(true);
     try {
       const newValue = !isManaged;
+      console.log("[ManagedToggle] Sending PUT request to /api/artists/" + artistId, { managed_by_admin: newValue });
       const res = await fetch(`/api/artists/${artistId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Explicitly send cookies
         body: JSON.stringify({ managed_by_admin: newValue }),
       });
+      console.log("[ManagedToggle] Response status:", res.status, res.statusText);
       const data = await res.json();
+      console.log("[ManagedToggle] Response data:", data);
       if (!res.ok) {
+        // Revert optimistic update on error
         throw new Error(data.error || "Error al actualizar");
       }
       setIsManaged(newValue);
       onToggle();
     } catch (err) {
+      console.error("[ManagedToggle] Error:", err);
       alert(err instanceof Error ? err.message : "Error al actualizar");
     } finally {
       setLoading(false);
@@ -238,7 +245,7 @@ function ManagedToggle({
           ? "bg-violet-100 text-violet-700 hover:bg-violet-200"
           : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
       }`}
-      title={isManaged ? "Quitar de mi gestión" : "Añadir a mi gestión"}
+      title={isManaged ? "Quitar gestión de agencia" : "Gestionar como agencia"}
     >
       {loading ? (
         "..."
@@ -254,10 +261,10 @@ function ManagedToggle({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M5 13l4 4L19 7"
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
             />
           </svg>
-          Gestionado
+          Gestionado por agencia
         </>
       ) : (
         "Gestionar"
@@ -638,6 +645,11 @@ export function ArtistManagementTable({
                           <span className="font-medium text-neutral-900">
                             {artist.name}
                           </span>
+                          {artist.managed_by_admin && (
+                            <span className="ml-2 rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">
+                              Gestionado por agencia
+                            </span>
+                          )}
                           {!artist.created_by_admin && (
                             <span className="ml-2 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-600">
                               Auto-registrado
@@ -720,9 +732,16 @@ export function ArtistManagementTable({
                       </div>
                     )}
                     <div>
-                      <p className="font-semibold text-neutral-900">
-                        {artist.name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-neutral-900">
+                          {artist.name}
+                        </p>
+                        {artist.managed_by_admin && (
+                          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700">
+                            Gestionado por agencia
+                          </span>
+                        )}
+                      </div>
                       <p className="font-mono text-xs text-neutral-400">
                         {artist.slug ?? "—"}
                       </p>

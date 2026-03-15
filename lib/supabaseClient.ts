@@ -19,6 +19,52 @@ export async function createSupabaseServerClient() {
       get(name: string) {
         return cookieStore.get(name)?.value
       },
+      set(name: string, value: string, options: CookieOptions) {
+        // Server components can't set cookies, but we include this for completeness
+        try {
+          cookieStore.set({ name, value, ...options })
+        } catch {
+          // Ignore errors in server components
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value: '', ...options })
+        } catch {
+          // Ignore errors in server components
+        }
+      },
+    },
+  })
+}
+
+/**
+ * Route handler client for API routes.
+ * IMPORTANT: In Next.js App Router route handlers, cookies() must be awaited
+ * and all cookie methods (get, set, remove) must be provided for auth to work.
+ */
+export async function createSupabaseRouteHandlerClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value, ...options })
+        } catch {
+          // Route handlers can set cookies but this may fail in certain contexts
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value: '', ...options })
+        } catch {
+          // Ignore errors
+        }
+      },
     },
   })
 }
