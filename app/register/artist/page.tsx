@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useCallback, memo, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // =============================================================================
@@ -63,12 +63,12 @@ const StepName = memo(function StepName({
   onErrorClear,
 }: StepNameProps) {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-4 pt-8 pb-4">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+    <div className="flex flex-col w-full">
+      <div className="px-5 pt-6 pb-4">
+        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
           Únete a QuitoShows
         </h2>
-        <p className="text-neutral-500 mb-8">
+        <p className="text-neutral-500 mb-8 text-base">
           Empieza a recibir reservas hoy mismo.
         </p>
 
@@ -94,11 +94,11 @@ const StepName = memo(function StepName({
             placeholder="Ej: Los Hermanos García"
             disabled={disabled}
           />
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2.5 text-sm text-neutral-500">
             Este será el nombre visible para los clientes.
           </p>
           {error && (
-            <p className="mt-2 text-sm text-red-600">{error}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{error}</p>
           )}
         </div>
       </div>
@@ -138,12 +138,12 @@ const StepCategoryCity = memo(function StepCategoryCity({
   onCityErrorClear,
 }: StepCategoryCityProps) {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-4 pt-8 pb-4 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+    <div className="flex flex-col w-full">
+      <div className="px-5 pt-6 pb-4">
+        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
           Cuéntanos qué haces
         </h2>
-        <p className="text-neutral-500 mb-6">
+        <p className="text-neutral-500 mb-6 text-base">
           Selecciona tu categoría y ubicación.
         </p>
 
@@ -178,10 +178,10 @@ const StepCategoryCity = memo(function StepCategoryCity({
                     onCategoryChange(cat.id);
                     if (categoryIdError) onCategoryErrorClear();
                   }}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`p-4 rounded-xl border-2 text-left transition-all duration-150 ${
                     categoryId === cat.id
-                      ? "border-neutral-900 bg-neutral-50"
-                      : "border-neutral-200 bg-white hover:border-neutral-300"
+                      ? "border-neutral-900 bg-neutral-50 shadow-sm"
+                      : "border-neutral-200 bg-white hover:border-neutral-300 active:border-neutral-400"
                   }`}
                 >
                   <span className="font-medium text-neutral-900">{cat.name}</span>
@@ -190,7 +190,7 @@ const StepCategoryCity = memo(function StepCategoryCity({
             </div>
           )}
           {categoryIdError && (
-            <p className="mt-2 text-sm text-red-600">{categoryIdError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{categoryIdError}</p>
           )}
         </div>
 
@@ -218,7 +218,7 @@ const StepCategoryCity = memo(function StepCategoryCity({
             disabled={disabled}
           />
           {cityError && (
-            <p className="mt-2 text-sm text-red-600">{cityError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{cityError}</p>
           )}
         </div>
       </div>
@@ -273,12 +273,12 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
   }, [onImageChange, onProfileImageErrorClear]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-4 pt-8 pb-4 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+    <div className="flex flex-col w-full">
+      <div className="px-5 pt-6 pb-4">
+        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
           Haz que los clientes puedan encontrarte
         </h2>
-        <p className="text-neutral-500 mb-6">
+        <p className="text-neutral-500 mb-6 text-base">
           WhatsApp y foto de perfil.
         </p>
 
@@ -305,11 +305,11 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
             placeholder="593999999999"
             disabled={disabled}
           />
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2.5 text-sm text-neutral-500">
             Los clientes te contactarán por este número.
           </p>
           {whatsappError && (
-            <p className="mt-2 text-sm text-red-600">{whatsappError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{whatsappError}</p>
           )}
         </div>
 
@@ -326,7 +326,7 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
 
           {imagePreview ? (
             <div className="flex items-center gap-4">
-              <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-neutral-200">
+              <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-neutral-200 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreview}
@@ -337,7 +337,7 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-3 px-4 rounded-xl border border-neutral-200 text-neutral-700 font-medium hover:bg-neutral-50 transition"
+                className="flex-1 py-3 px-4 rounded-xl border border-neutral-200 text-neutral-700 font-medium hover:bg-neutral-50 active:bg-neutral-100 transition-colors duration-150"
               >
                 Cambiar foto
               </button>
@@ -346,7 +346,7 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full py-8 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-500 hover:border-neutral-400 hover:text-neutral-600 transition flex flex-col items-center gap-2"
+              className="w-full py-8 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-500 hover:border-neutral-400 hover:text-neutral-600 active:bg-neutral-50 transition-colors duration-150 flex flex-col items-center gap-2"
             >
               <svg
                 className="w-10 h-10"
@@ -365,11 +365,11 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
             </button>
           )}
 
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2.5 text-sm text-neutral-500">
             Sube una foto clara o el logo de tu agrupación.
           </p>
           {profileImageError && (
-            <p className="mt-2 text-sm text-red-600">{profileImageError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{profileImageError}</p>
           )}
         </div>
       </div>
@@ -416,12 +416,12 @@ const StepCredentials = memo(function StepCredentials({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-4 pt-8 pb-4 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-2">
+    <div className="flex flex-col w-full">
+      <div className="px-5 pt-6 pb-4">
+        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-2 leading-tight">
           Crea tus datos de acceso
         </h2>
-        <p className="text-neutral-500 mb-6">
+        <p className="text-neutral-500 mb-6 text-base">
           Usarás estos datos para iniciar sesión.
         </p>
 
@@ -449,7 +449,7 @@ const StepCredentials = memo(function StepCredentials({
             disabled={disabled}
           />
           {emailError && (
-            <p className="mt-2 text-sm text-red-600">{emailError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{emailError}</p>
           )}
         </div>
 
@@ -480,7 +480,7 @@ const StepCredentials = memo(function StepCredentials({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 active:text-neutral-700 p-1 transition-colors"
               tabIndex={-1}
             >
               {showPassword ? (
@@ -496,7 +496,7 @@ const StepCredentials = memo(function StepCredentials({
             </button>
           </div>
           {passwordError && (
-            <p className="mt-2 text-sm text-red-600">{passwordError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{passwordError}</p>
           )}
         </div>
 
@@ -527,7 +527,7 @@ const StepCredentials = memo(function StepCredentials({
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 active:text-neutral-700 p-1 transition-colors"
               tabIndex={-1}
             >
               {showConfirmPassword ? (
@@ -543,7 +543,7 @@ const StepCredentials = memo(function StepCredentials({
             </button>
           </div>
           {confirmPasswordError && (
-            <p className="mt-2 text-sm text-red-600">{confirmPasswordError}</p>
+            <p className="mt-2 text-sm text-red-600 font-medium">{confirmPasswordError}</p>
           )}
         </div>
       </div>
@@ -575,17 +575,17 @@ const StepConfirmation = memo(function StepConfirmation({
   error,
 }: StepConfirmationProps) {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 px-4 pt-8 pb-4">
-        <h2 className="text-2xl font-bold text-neutral-900 mb-4">
+    <div className="flex flex-col w-full">
+      <div className="px-5 pt-6 pb-4">
+        <h2 className="text-[1.75rem] font-bold text-neutral-900 mb-4 leading-tight">
           ¡Estás listo!
         </h2>
 
         {/* Summary Card */}
-        <div className="bg-neutral-50 rounded-2xl p-4 mb-6">
+        <div className="bg-neutral-50 rounded-2xl p-4 mb-5 border border-neutral-100">
           <div className="flex items-center gap-3 mb-4">
             {imagePreview ? (
-              <div className="w-14 h-14 rounded-xl overflow-hidden border border-neutral-200">
+              <div className="w-14 h-14 rounded-xl overflow-hidden border border-neutral-200 shadow-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreview}
@@ -608,18 +608,18 @@ const StepConfirmation = memo(function StepConfirmation({
             </div>
           </div>
 
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2.5 text-sm">
             <div className="flex justify-between">
               <span className="text-neutral-500">Ciudad:</span>
-              <span className="text-neutral-900">{city}</span>
+              <span className="text-neutral-900 font-medium">{city}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">WhatsApp:</span>
-              <span className="text-neutral-900">{whatsapp}</span>
+              <span className="text-neutral-900 font-medium">{whatsapp}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">Correo:</span>
-              <span className="text-neutral-900">{email}</span>
+              <span className="text-neutral-900 font-medium">{email}</span>
             </div>
           </div>
         </div>
@@ -636,7 +636,7 @@ const StepConfirmation = memo(function StepConfirmation({
         </p>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
             {error}
           </div>
         )}
@@ -646,7 +646,7 @@ const StepConfirmation = memo(function StepConfirmation({
 });
 
 // =============================================================================
-// Progress Indicator (Memoized)
+// Progress Indicator (Memoized) - Enhanced Premium UX
 // =============================================================================
 
 interface ProgressIndicatorProps {
@@ -659,25 +659,31 @@ const ProgressIndicator = memo(function ProgressIndicator({
   totalSteps,
 }: ProgressIndicatorProps) {
   return (
-    <div className="flex items-center justify-center gap-2 py-4 px-4">
-      {Array.from({ length: totalSteps }).map((_, index) => (
-        <div
-          key={index}
-          className={`h-1.5 rounded-full transition-all duration-300 ${
-            index + 1 === currentStep
-              ? "w-8 bg-neutral-900"
-              : index + 1 < currentStep
-              ? "w-4 bg-neutral-400"
-              : "w-4 bg-neutral-200"
-          }`}
-        />
-      ))}
+    <div className="flex items-center justify-center gap-2.5 py-3 px-4">
+      {Array.from({ length: totalSteps }).map((_, index) => {
+        const stepNumber = index + 1;
+        const isActive = stepNumber === currentStep;
+        const isCompleted = stepNumber < currentStep;
+        
+        return (
+          <div
+            key={index}
+            className={`rounded-full transition-all duration-[200ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+              isActive
+                ? "w-10 h-2.5 bg-neutral-900 shadow-sm"
+                : isCompleted
+                ? "w-2.5 h-2.5 bg-neutral-500"
+                : "w-2.5 h-2.5 bg-neutral-200"
+            }`}
+          />
+        );
+      })}
     </div>
   );
 });
 
 // =============================================================================
-// Navigation Buttons (Memoized)
+// Navigation Buttons (Memoized) - Enhanced CTA Ergonomics
 // =============================================================================
 
 interface NavigationButtonsProps {
@@ -698,16 +704,17 @@ const NavigationButtons = memo(function NavigationButtons({
   onSubmit,
 }: NavigationButtonsProps) {
   const isLastStep = currentStep === totalSteps;
+  const showBackButton = currentStep > 1;
 
   return (
-    <div className="flex-shrink-0 bg-white border-t border-neutral-100 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-      <div className="flex gap-3">
-        {currentStep > 1 && (
+    <div className="flex-shrink-0 bg-white border-t border-neutral-100 px-5 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div className={`flex gap-3 ${!showBackButton ? 'justify-end' : ''}`}>
+        {showBackButton && (
           <button
             type="button"
             onClick={onBack}
             disabled={loading}
-            className="flex-1 py-3.5 px-4 rounded-xl border border-neutral-200 text-neutral-700 font-medium hover:bg-neutral-50 active:bg-neutral-100 transition disabled:opacity-50"
+            className="py-3.5 px-5 rounded-xl text-neutral-500 font-medium hover:text-neutral-700 active:text-neutral-900 active:bg-neutral-50 transition-colors duration-150 disabled:opacity-50"
           >
             Atrás
           </button>
@@ -716,7 +723,7 @@ const NavigationButtons = memo(function NavigationButtons({
           type="button"
           onClick={isLastStep ? onSubmit : onNext}
           disabled={loading}
-          className="flex-1 py-3.5 px-4 rounded-xl bg-neutral-900 text-white font-semibold hover:bg-neutral-800 active:bg-neutral-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          className={`${showBackButton ? 'flex-1' : 'w-full'} py-4 px-6 rounded-xl bg-neutral-900 text-white font-semibold shadow-sm shadow-neutral-900/10 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2`}
         >
           {loading ? (
             <>
@@ -741,9 +748,13 @@ const NavigationButtons = memo(function NavigationButtons({
 // Main Component
 // =============================================================================
 
+type NavigationDirection = 'forward' | 'back' | null;
+
 export default function ArtistRegisterPage() {
   const router = useRouter();
   const desktopFileInputRef = useRef<HTMLInputElement>(null);
+  const mobileContainerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Form data state
   const [formData, setFormData] = useState<FormData>({
@@ -767,6 +778,12 @@ export default function ArtistRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Navigation direction for animations
+  const [navigationDirection, setNavigationDirection] = useState<NavigationDirection>(null);
+  
+  // Animation key to force re-render for step transitions
+  const [animationKey, setAnimationKey] = useState(0);
 
   // Desktop password visibility
   const [showDesktopPassword, setShowDesktopPassword] = useState(false);
@@ -789,6 +806,20 @@ export default function ArtistRegisterPage() {
         setCategoriesLoading(false);
       });
   }, []);
+
+  // =============================================================================
+  // Scroll Reset on Step Change
+  // =============================================================================
+  
+  useLayoutEffect(() => {
+    // Smooth scroll to top when step changes
+    if (mobileContainerRef.current && navigationDirection) {
+      mobileContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'instant' // Use instant for smoother perceived transition
+      });
+    }
+  }, [currentStep, navigationDirection]);
 
   // =============================================================================
   // Stable Callbacks (prevent re-renders)
@@ -905,11 +936,15 @@ export default function ArtistRegisterPage() {
 
   const goNext = useCallback(() => {
     if (validateStep(currentStep)) {
+      setNavigationDirection('forward');
+      setAnimationKey(prev => prev + 1);
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     }
   }, [currentStep, formData, categories.length]);
 
   const goBack = useCallback(() => {
+    setNavigationDirection('back');
+    setAnimationKey(prev => prev + 1);
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   }, []);
 
@@ -991,17 +1026,27 @@ export default function ArtistRegisterPage() {
   // Render
   // =============================================================================
 
+  // Animation class based on navigation direction
+  const stepAnimationClass = navigationDirection === 'forward' 
+    ? 'step-enter' 
+    : navigationDirection === 'back' 
+    ? 'step-enter-back' 
+    : '';
+
   return (
     <>
       {/* ========== MOBILE WIZARD (hidden on md+) ========== */}
-      <div className="min-h-[100dvh] bg-white flex flex-col md:hidden">
+      <div 
+        ref={mobileContainerRef}
+        className="min-h-[100dvh] bg-white flex flex-col md:hidden overflow-y-auto"
+      >
         {/* Header */}
-        <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-neutral-100">
+        <header className="flex-shrink-0 sticky top-0 z-10 bg-white/95 backdrop-blur-sm flex items-center justify-between px-4 py-3 border-b border-neutral-100">
           {currentStep > 1 ? (
             <button
               type="button"
               onClick={goBack}
-              className="p-2 -ml-2 text-neutral-600 hover:text-neutral-900 active:text-neutral-900"
+              className="p-2 -ml-2 text-neutral-500 hover:text-neutral-700 active:text-neutral-900 active:bg-neutral-50 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1015,79 +1060,87 @@ export default function ArtistRegisterPage() {
 
           <a
             href="/login"
-            className="text-sm font-medium text-neutral-500 hover:text-neutral-900"
+            className="text-sm font-medium text-neutral-400 hover:text-neutral-700 transition-colors"
           >
             Iniciar sesión
           </a>
         </header>
 
-        {/* Step Content */}
-        <main className="flex-1 overflow-y-auto">
-          {currentStep === 1 && (
-            <StepName
-              name={formData.name}
-              error={errors.name}
-              disabled={loading}
-              onNameChange={handleNameChange}
-              onErrorClear={() => clearError("name")}
-            />
-          )}
-          {currentStep === 2 && (
-            <StepCategoryCity
-              categories={categories}
-              categoriesLoading={categoriesLoading}
-              categoryId={formData.categoryId}
-              city={formData.city}
-              categoryIdError={errors.categoryId}
-              cityError={errors.city}
-              disabled={loading}
-              onCategoryChange={handleCategoryChange}
-              onCityChange={handleCityChange}
-              onCategoryErrorClear={() => clearError("categoryId")}
-              onCityErrorClear={() => clearError("city")}
-            />
-          )}
-          {currentStep === 3 && (
-            <StepWhatsAppPhoto
-              whatsapp={formData.whatsapp}
-              imagePreview={imagePreview}
-              whatsappError={errors.whatsapp}
-              profileImageError={errors.profileImage}
-              disabled={loading}
-              onWhatsappChange={handleWhatsappChange}
-              onImageChange={handleImageChange}
-              onWhatsappErrorClear={() => clearError("whatsapp")}
-              onProfileImageErrorClear={() => clearError("profileImage")}
-            />
-          )}
-          {currentStep === 4 && (
-            <StepCredentials
-              email={formData.email}
-              password={formData.password}
-              confirmPassword={formData.confirmPassword}
-              emailError={errors.email}
-              passwordError={errors.password}
-              confirmPasswordError={errors.confirmPassword}
-              disabled={loading}
-              onEmailChange={handleEmailChange}
-              onPasswordChange={handlePasswordChange}
-              onConfirmPasswordChange={handleConfirmPasswordChange}
-              onEmailErrorClear={() => clearError("email")}
-              onPasswordErrorClear={() => clearError("password")}
-              onConfirmPasswordErrorClear={() => clearError("confirmPassword")}
-            />
-          )}
-          {currentStep === 5 && (
-            <StepConfirmation
-              name={formData.name}
-              categoryName={categoryName}
-              city={formData.city}
-              whatsapp={formData.whatsapp}
-              email={formData.email}
-              imagePreview={imagePreview}
-              error={error}
-            />
-          )}
+        {/* Step Content - with intelligent vertical layout */}
+        <main 
+          ref={contentRef}
+          className="flex-1 flex flex-col justify-center py-4"
+        >
+          <div 
+            key={animationKey}
+            className={stepAnimationClass}
+          >
+            {currentStep === 1 && (
+              <StepName
+                name={formData.name}
+                error={errors.name}
+                disabled={loading}
+                onNameChange={handleNameChange}
+                onErrorClear={() => clearError("name")}
+              />
+            )}
+            {currentStep === 2 && (
+              <StepCategoryCity
+                categories={categories}
+                categoriesLoading={categoriesLoading}
+                categoryId={formData.categoryId}
+                city={formData.city}
+                categoryIdError={errors.categoryId}
+                cityError={errors.city}
+                disabled={loading}
+                onCategoryChange={handleCategoryChange}
+                onCityChange={handleCityChange}
+                onCategoryErrorClear={() => clearError("categoryId")}
+                onCityErrorClear={() => clearError("city")}
+              />
+            )}
+            {currentStep === 3 && (
+              <StepWhatsAppPhoto
+                whatsapp={formData.whatsapp}
+                imagePreview={imagePreview}
+                whatsappError={errors.whatsapp}
+                profileImageError={errors.profileImage}
+                disabled={loading}
+                onWhatsappChange={handleWhatsappChange}
+                onImageChange={handleImageChange}
+                onWhatsappErrorClear={() => clearError("whatsapp")}
+                onProfileImageErrorClear={() => clearError("profileImage")}
+              />
+            )}
+            {currentStep === 4 && (
+              <StepCredentials
+                email={formData.email}
+                password={formData.password}
+                confirmPassword={formData.confirmPassword}
+                emailError={errors.email}
+                passwordError={errors.password}
+                confirmPasswordError={errors.confirmPassword}
+                disabled={loading}
+                onEmailChange={handleEmailChange}
+                onPasswordChange={handlePasswordChange}
+                onConfirmPasswordChange={handleConfirmPasswordChange}
+                onEmailErrorClear={() => clearError("email")}
+                onPasswordErrorClear={() => clearError("password")}
+                onConfirmPasswordErrorClear={() => clearError("confirmPassword")}
+              />
+            )}
+            {currentStep === 5 && (
+              <StepConfirmation
+                name={formData.name}
+                categoryName={categoryName}
+                city={formData.city}
+                whatsapp={formData.whatsapp}
+                email={formData.email}
+                imagePreview={imagePreview}
+                error={error}
+              />
+            )}
+          </div>
         </main>
 
         {/* Navigation */}

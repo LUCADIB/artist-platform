@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Animation tokens for premium feel */
+    --transition-fast: 150ms;
+    --transition-normal: 200ms;
+    --transition-smooth: 250ms;
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
 body {
   @apply antialiased;
 }
@@ -16,5 +27,55 @@ body {
 
 .btn-ghost {
   @apply inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:bg-neutral-50;
+}
+
+/* Step transition animations */
+@layer utilities {
+  .step-enter {
+    animation: stepEnter var(--transition-normal) var(--ease-out-quart) forwards;
+  }
+  
+  .step-enter-back {
+    animation: stepEnterBack var(--transition-normal) var(--ease-out-quart) forwards;
+  }
+  
+  @keyframes stepEnter {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes stepEnterBack {
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  /* Progress indicator pulse */
+  .progress-pulse {
+    animation: progressPulse 400ms var(--ease-out-expo) forwards;
+  }
+  
+  @keyframes progressPulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 }
 
