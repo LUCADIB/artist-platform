@@ -47,15 +47,15 @@ export function ArtistCard({
         ref={ref}
         className={[
           "group",
-          /* Desktop: card chrome */
-          "sm:flex sm:flex-col sm:overflow-hidden sm:rounded-2xl sm:border sm:border-neutral-200 sm:bg-white sm:shadow-sm sm:hover:-translate-y-1 sm:hover:shadow-lg",
+          /* Desktop: premium hover */
+          "sm:hover:-translate-y-1 sm:hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]",
           /* Tap feedback + reveal */
           "active:scale-[0.97] transition-all duration-300 ease-out",
           isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
         ].join(" ")}
       >
         {/* ── Image tile ── */}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100 sm:aspect-[4/3] sm:rounded-none">
+        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100 sm:aspect-[3/4] sm:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -86,21 +86,14 @@ export function ArtistCard({
           )}
         </div>
 
-        {/* ── Desktop: card body with CTA ── */}
-        <div className="hidden sm:flex sm:flex-1 sm:flex-col sm:gap-2 sm:p-4">
-          <div>
-            <h3 className="text-sm font-semibold leading-snug tracking-tight text-neutral-900">
-              {name}
-            </h3>
-            {city && (
-              <p className="mt-1 text-xs text-neutral-500">{city}</p>
-            )}
-          </div>
-          <div className="mt-3">
-            <span className="btn-primary flex w-full justify-center !h-9 !py-0 text-sm">
-              Ver perfil
-            </span>
-          </div>
+        {/* ── Desktop: text below tile ── */}
+        <div className="hidden sm:block sm:mt-2.5 sm:px-1">
+          <h3 className="text-sm font-semibold leading-snug tracking-tight text-neutral-900">
+            {name}
+          </h3>
+          {city && (
+            <p className="mt-0.5 text-xs text-neutral-500">{city}</p>
+          )}
         </div>
       </article>
     </Link>
