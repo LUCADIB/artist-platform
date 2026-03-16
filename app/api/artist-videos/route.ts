@@ -158,28 +158,41 @@ export async function POST(request: NextRequest) {
 
   const serviceClient = getServiceClient();
 
-  // Determine artistId
+  // Determine artistId with proper ownership validation
   let artistId: string;
 
   if (providedArtistId) {
-    // Manager flow: verify user is admin/manager
-    const { data: profile } = await serviceClient
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
+    // First check: does this artist belong to the session user?
+    const { data: ownedArtist } = await serviceClient
+      .from("artists")
+      .select("id")
+      .eq("id", providedArtistId)
+      .eq("profile_id", session.user.id)
       .maybeSingle();
 
-    const role = profile?.role;
-    const isManager = role === "manager" || role === "admin";
+    if (ownedArtist) {
+      // User owns this artist - allow
+      artistId = providedArtistId;
+    } else {
+      // User doesn't own this artist - must be manager/admin
+      const { data: profile } = await serviceClient
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
 
-    if (!isManager) {
-      return NextResponse.json(
-        { error: "No tienes permiso para agregar videos a otros artistas." },
-        { status: 403 }
-      );
+      const role = profile?.role;
+      const isManager = role === "manager" || role === "admin";
+
+      if (!isManager) {
+        return NextResponse.json(
+          { error: "No tienes permiso para agregar videos a otros artistas." },
+          { status: 403 }
+        );
+      }
+
+      artistId = providedArtistId;
     }
-
-    artistId = providedArtistId;
   } else {
     // Artist flow: get artist ID from profile
     const { data: artist } = await serviceClient
