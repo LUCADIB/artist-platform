@@ -76,7 +76,7 @@ export default async function HomePage({
         initialCategoryId={searchParams?.categoryId}
       />
 
-      <section className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-6xl px-3 pb-10 sm:px-6 lg:px-8">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900 sm:text-xl">
@@ -95,7 +95,7 @@ export default async function HomePage({
         </div>
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+            <div className="columns-2 gap-3 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
               {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
