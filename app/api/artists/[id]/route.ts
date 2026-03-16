@@ -210,24 +210,137 @@ export async function PUT(
 
 /**
  * DELETE /api/artists/[id]
- * Deletes an artist (manager only).
+ *
+ * Securely deletes an artist after verifying:
+ * 1. User is authenticated
+ * 2. User is either:
+ *    - A manager/admin (can delete any artist)
+ *    - An artist who owns this profile
+ *
+ * Authorization flow:
+ * - Get session from cookies (SSR)
+ * - Fetch user profile to check role
+ * - Fetch artist to verify ownership (for artists)
+ * - Only then perform delete
  */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
+  try {
+    const { id } = params;
 
-  const supabase = getServiceClient();
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID de artista requerido." },
+        { status: 400 }
+      );
+    }
 
-  const { error } = await supabase.from("artists").delete().eq("id", id);
+    // Step 1: Get authenticated session
+    const supabaseAuth = await createSupabaseRouteHandlerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser();
 
-  if (error) {
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "No autorizado. Inicia sesión para continuar." },
+        { status: 401 }
+      );
+    }
+
+    // Step 2: Get user profile and role
+    const serviceClient = getServiceClient();
+    const { data: profile, error: profileError } = await serviceClient
+      .from("profiles")
+      .select("id, role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error("[Artist DELETE] Profile lookup error:", profileError);
+      return NextResponse.json(
+        { error: "Error al verificar el perfil del usuario." },
+        { status: 500 }
+      );
+    }
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: "Perfil de usuario no encontrado." },
+        { status: 403 }
+      );
+    }
+
+    // Step 3: Fetch the artist to verify existence and ownership
+    const { data: artist, error: fetchError } = await serviceClient
+      .from("artists")
+      .select("id, name, profile_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("[Artist DELETE] Artist fetch error:", fetchError);
+      return NextResponse.json(
+        { error: "Error al buscar el artista." },
+        { status: 500 }
+      );
+    }
+
+    if (!artist) {
+      return NextResponse.json(
+        { error: "Artista no encontrado." },
+        { status: 404 }
+      );
+    }
+
+    // Step 4: Authorization check
+    const userRole = profile.role;
+    const isManager = userRole === "manager" || userRole === "admin";
+
+    if (isManager) {
+      // Managers/admins can delete any artist
+      // Proceed to delete
+    } else if (userRole === "artist") {
+      // Artists can only delete their own profile
+      if (artist.profile_id !== user.id) {
+        return NextResponse.json(
+          { error: "No tienes permiso para eliminar este perfil de artista." },
+          { status: 403 }
+        );
+      }
+      // Ownership verified, proceed to delete
+    } else {
+      // Unknown role - deny access
+      return NextResponse.json(
+        { error: "No tienes permiso para realizar esta acción." },
+        { status: 403 }
+      );
+    }
+
+    // Step 5: Perform the delete (authorization passed)
+    const { error: deleteError } = await serviceClient
+      .from("artists")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("[Artist DELETE] Delete error:", deleteError);
+      return NextResponse.json(
+        { error: "Error al eliminar el artista." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error("[Artist DELETE] Unexpected error:", error);
     return NextResponse.json(
-      { error: error.message },
+      { error: "Error interno del servidor." },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({ success: true });
 }
