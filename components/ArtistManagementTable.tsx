@@ -25,6 +25,7 @@ interface Artist {
   created_by_admin: boolean;
   managed_by_admin: boolean;
   home_featured_rank: number | null;
+  category_featured_rank: number | null;
   categories: { id: string; name: string } | null;
 }
 
@@ -274,8 +275,263 @@ function ManagedToggle({
 }
 
 /**
- * Featured rank input for home page positioning.
- * Allows setting rank 1-10 or clearing (null) to remove from featured.
+ * ============================================================================
+ * FEATURED RANK INPUTS - Home & Category Featured
+ * ============================================================================
+ *
+ * This component manages BOTH featured ranking systems:
+ *
+ * 1. HOME FEATURED (home_featured_rank)
+ *    - Global homepage positioning
+ *    - Valid range: 1-10
+ *    - Rank 1 = "Hero Artist" (special visual treatment)
+ *    - Unique across ALL artists
+ *    - Shows on homepage in rank order
+ *
+ * 2. CATEGORY FEATURED (category_featured_rank)
+ *    - Per-category page positioning
+ *    - Valid range: 1-6
+ *    - Unique within the artist's category
+ *    - Shows at top of category page
+ *
+ * RANKING PRIORITY ON CATEGORY PAGES:
+ *   1. Artists with home_featured_rank (global stars)
+ *   2. Artists with category_featured_rank (category stars)
+ *   3. Normal artists (by creation date)
+ *
+ * This means a globally featured artist (home rank 3) will appear
+ * ABOVE a category-only featured artist (category rank 1) on the
+ * category page.
+ *
+ * ============================================================================
+ */
+function FeaturedRankInputs({
+  artistId,
+  initialHomeRank,
+  initialCategoryRank,
+  hasCategory,
+  onUpdated,
+}: {
+  artistId: string;
+  initialHomeRank: number | null;
+  initialCategoryRank: number | null;
+  hasCategory: boolean;
+  onUpdated: () => void;
+}) {
+  // State for both ranks
+  const [homeRank, setHomeRank] = useState<string>(
+    initialHomeRank !== null ? String(initialHomeRank) : ""
+  );
+  const [categoryRank, setCategoryRank] = useState<string>(
+    initialCategoryRank !== null ? String(initialCategoryRank) : ""
+  );
+
+  // Loading and feedback states
+  const [loadingField, setLoadingField] = useState<"home" | "category" | null>(null);
+  const [successField, setSuccessField] = useState<"home" | "category" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sync local state with props when server data refreshes
+  useEffect(() => {
+    setHomeRank(initialHomeRank !== null ? String(initialHomeRank) : "");
+  }, [initialHomeRank]);
+
+  useEffect(() => {
+    setCategoryRank(initialCategoryRank !== null ? String(initialCategoryRank) : "");
+  }, [initialCategoryRank]);
+
+  // Clear success state after 1.5 seconds
+  useEffect(() => {
+    if (successField) {
+      const timer = setTimeout(() => setSuccessField(null), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [successField]);
+
+  /**
+   * Updates featured rank via API.
+   * Always sends BOTH ranks to maintain consistency.
+   */
+  async function saveRank(
+    field: "home" | "category",
+    newHomeRank: number | null,
+    newCategoryRank: number | null
+  ) {
+    setLoadingField(field);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/artists/featured", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          artistId,
+          homeRank: newHomeRank,
+          categoryRank: newCategoryRank,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Handle conflict error (rank already assigned)
+        if (res.status === 409) {
+          throw new Error(data.error || "Rank already assigned to another artist");
+        }
+        throw new Error(data.error || "Error al actualizar");
+      }
+
+      setSuccessField(field);
+      onUpdated();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al actualizar";
+      setError(message);
+      // Reset the field that failed
+      if (field === "home") {
+        setHomeRank(initialHomeRank !== null ? String(initialHomeRank) : "");
+      } else {
+        setCategoryRank(initialCategoryRank !== null ? String(initialCategoryRank) : "");
+      }
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setLoadingField(null);
+    }
+  }
+
+  function handleHomeBlur() {
+    const newHomeRank = homeRank === "" ? null : parseInt(homeRank, 10);
+
+    // Validate range
+    if (newHomeRank !== null && (newHomeRank < 1 || newHomeRank > 10)) {
+      setHomeRank(initialHomeRank !== null ? String(initialHomeRank) : "");
+      return;
+    }
+
+    // Skip if unchanged
+    if (newHomeRank === initialHomeRank) return;
+
+    // Get current category rank value
+    const currentCategoryRank = categoryRank === "" ? null : parseInt(categoryRank, 10);
+    saveRank("home", newHomeRank, currentCategoryRank);
+  }
+
+  function handleCategoryBlur() {
+    // If artist has no category, show error
+    if (!hasCategory) {
+      setError("El artista debe tener una categoría asignada");
+      setCategoryRank("");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    const newCategoryRank = categoryRank === "" ? null : parseInt(categoryRank, 10);
+
+    // Validate range
+    if (newCategoryRank !== null && (newCategoryRank < 1 || newCategoryRank > 6)) {
+      setCategoryRank(initialCategoryRank !== null ? String(initialCategoryRank) : "");
+      return;
+    }
+
+    // Skip if unchanged
+    if (newCategoryRank === initialCategoryRank) return;
+
+    // Get current home rank value
+    const currentHomeRank = homeRank === "" ? null : parseInt(homeRank, 10);
+    saveRank("category", currentHomeRank, newCategoryRank);
+  }
+
+  // Input style based on state
+  const getInputStyle = (field: "home" | "category") => {
+    let base = "w-10 rounded border px-1.5 py-1 text-center text-xs transition-colors ";
+
+    if (loadingField === field) {
+      return base + "border-neutral-300 bg-neutral-50 opacity-50";
+    }
+    if (successField === field) {
+      return base + "border-green-400 bg-green-50 text-green-700";
+    }
+    return base + "border-neutral-200 hover:border-neutral-300 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400";
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        {/* Home Featured Input */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-neutral-400" title="Destacado en página principal">
+            🏠
+          </span>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={homeRank}
+            onChange={(e) => setHomeRank(e.target.value)}
+            onBlur={handleHomeBlur}
+            disabled={loadingField !== null}
+            placeholder="—"
+            className={getInputStyle("home")}
+            title="Ranking en homepage (1-10)"
+          />
+        </div>
+
+        {/* Category Featured Input */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-neutral-400" title="Destacado en categoría">
+            📁
+          </span>
+          <input
+            type="number"
+            min={1}
+            max={6}
+            value={categoryRank}
+            onChange={(e) => setCategoryRank(e.target.value)}
+            onBlur={handleCategoryBlur}
+            disabled={loadingField !== null || !hasCategory}
+            placeholder="—"
+            className={getInputStyle("category") + (!hasCategory ? " opacity-40 cursor-not-allowed" : "")}
+            title={hasCategory ? "Ranking en categoría (1-6)" : "Asigna una categoría primero"}
+          />
+        </div>
+
+        {/* Loading spinner */}
+        {loadingField && (
+          <svg
+            className="h-3 w-3 animate-spin text-neutral-400"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        )}
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <p className="text-[10px] text-red-600 max-w-[150px] truncate" title={error}>
+          ⚠️ {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * @deprecated Use FeaturedRankInputs instead.
+ * Legacy component for backward compatibility.
  */
 function FeaturedRankInput({
   artistId,
@@ -291,7 +547,6 @@ function FeaturedRankInput({
   );
   const [loading, setLoading] = useState(false);
 
-  // Sync local state with prop when server data refreshes
   useEffect(() => {
     setRank(initialRank !== null ? String(initialRank) : "");
   }, [initialRank]);
@@ -299,13 +554,11 @@ function FeaturedRankInput({
   async function handleBlur() {
     const newRank = rank === "" ? null : parseInt(rank, 10);
 
-    // Validate range
     if (newRank !== null && (newRank < 1 || newRank > 10)) {
       setRank(initialRank !== null ? String(initialRank) : "");
       return;
     }
 
-    // Skip if unchanged
     if (newRank === initialRank) return;
 
     setLoading(true);
@@ -397,7 +650,7 @@ export function ArtistManagementTable({
       const { data } = await supabase
         .from("artists")
         .select(
-          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, category_featured_rank, categories ( id, name )"
         )
         .order("created_at", { ascending: false });
       setArtists((data ?? []) as unknown as Artist[]);
@@ -422,7 +675,7 @@ export function ArtistManagementTable({
       queryBuilder = supabase
         .from("artists")
         .select(
-          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, category_featured_rank, categories ( id, name )"
         )
         .or(`name.ilike.%${query}%,city.ilike.%${query}%,category_id.in.(${categoryIds.join(",")})`);
     } else {
@@ -430,7 +683,7 @@ export function ArtistManagementTable({
       queryBuilder = supabase
         .from("artists")
         .select(
-          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, categories ( id, name )"
+          "id, name, slug, city, bio, avatar_url, category_id, status, rejection_reason, created_by_admin, managed_by_admin, home_featured_rank, category_featured_rank, categories ( id, name )"
         )
         .or(`name.ilike.%${query}%,city.ilike.%${query}%`);
     }
@@ -662,9 +915,11 @@ export function ArtistManagementTable({
                       <StatusBadge status={artist.status || "draft"} />
                     </td>
                     <td className="px-4 py-3">
-                      <FeaturedRankInput
+                      <FeaturedRankInputs
                         artistId={artist.id}
-                        initialRank={artist.home_featured_rank}
+                        initialHomeRank={artist.home_featured_rank}
+                        initialCategoryRank={artist.category_featured_rank}
+                        hasCategory={!!artist.category_id}
                         onUpdated={handleRefresh}
                       />
                     </td>
@@ -761,9 +1016,11 @@ export function ArtistManagementTable({
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-neutral-500">Destacado:</span>
-                    <FeaturedRankInput
+                    <FeaturedRankInputs
                       artistId={artist.id}
-                      initialRank={artist.home_featured_rank}
+                      initialHomeRank={artist.home_featured_rank}
+                      initialCategoryRank={artist.category_featured_rank}
+                      hasCategory={!!artist.category_id}
                       onUpdated={handleRefresh}
                     />
                   </div>

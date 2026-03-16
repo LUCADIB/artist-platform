@@ -101,14 +101,15 @@ export default async function HomePage({
           </div>
           <a
             href="/artists"
-            className="text-xs font-medium text-primary-600 hover:text-primary-700"
+            className="text-xs font-medium text-neutral-900 underline-offset-4 hover:underline"
           >
             Ver todos los artistas
           </a>
         </div>
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
-            <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+            {/* Artist grid — hero artist gets col-span-2 row-span-2 via isHero */}
+            <div className="grid grid-cols-2 gap-4 auto-rows-fr md:grid-cols-3 lg:grid-cols-4">
               {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
@@ -118,6 +119,8 @@ export default async function HomePage({
                   city={artist.city}
                   categoryName={artist.categories?.name}
                   avatarUrl={artist.avatar_url}
+                  isFeatured={artist.home_featured_rank != null}
+                  isHero={artist.home_featured_rank === 1}
                 />
               ))}
             </div>

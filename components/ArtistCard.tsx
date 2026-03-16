@@ -10,6 +10,8 @@ interface ArtistCardProps {
   city: string | null;
   categoryName?: string | null;
   avatarUrl?: string | null;
+  isFeatured?: boolean;
+  isHero?: boolean;
 }
 
 export function ArtistCard({
@@ -17,7 +19,9 @@ export function ArtistCard({
   name,
   city,
   categoryName,
-  avatarUrl
+  avatarUrl,
+  isFeatured,
+  isHero
 }: ArtistCardProps) {
   const href = slug ? `/artist/${slug}` : "#";
   const ref = useRef<HTMLElement>(null);
@@ -42,11 +46,17 @@ export function ArtistCard({
   }, []);
 
   return (
-    <Link href={href} className="block break-inside-avoid mb-2 sm:mb-0">
+    <Link
+      href={href}
+      className={[
+        "block break-inside-avoid mb-2 sm:mb-0",
+        isHero ? "col-span-2 row-span-2" : "col-span-1 row-span-1",
+      ].join(" ")}
+    >
       <article
         ref={ref}
         className={[
-          "group",
+          "group h-full",
           /* Desktop: premium hover */
           "sm:hover:-translate-y-1 sm:hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]",
           /* Tap feedback + reveal */
@@ -55,7 +65,10 @@ export function ArtistCard({
         ].join(" ")}
       >
         {/* ── Image tile ── */}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100 sm:aspect-[3/4] sm:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+        <div className={[
+          "relative overflow-hidden rounded-2xl bg-neutral-100 sm:shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
+          isHero ? "h-full" : "aspect-[3/4] sm:aspect-[3/4]",
+        ].join(" ")}>
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -72,6 +85,11 @@ export function ArtistCard({
           {categoryName && (
             <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-white sm:px-3 sm:py-1 sm:text-[11px]">
               {categoryName}
+            </span>
+          )}
+          {isFeatured && (
+            <span className="absolute right-2 top-2 rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-md">
+              DESTACADO
             </span>
           )}
         </div>
