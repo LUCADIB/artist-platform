@@ -67,7 +67,7 @@ export function ArtistCard({
         {/* ── Image tile ── */}
         <div className={[
           "relative overflow-hidden rounded-2xl bg-neutral-100 sm:shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
-          isHero ? "h-full" : "aspect-[3/4] sm:aspect-[3/4]",
+          isHero ? "aspect-[4/5] sm:aspect-auto h-auto sm:h-full" : "aspect-[3/4] sm:aspect-[3/4]",
         ].join(" ")}>
           {avatarUrl ? (
             <img
@@ -83,12 +83,18 @@ export function ArtistCard({
             </div>
           )}
           {categoryName && (
-            <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-white sm:px-3 sm:py-1 sm:text-[11px]">
+            <span className={[
+              "absolute left-2 top-2 rounded-full bg-black/70 font-medium uppercase tracking-[0.15em] text-white",
+              isHero ? "px-3 py-1 text-xs" : "px-2 py-[2px] text-[10px]",
+            ].join(" ")}>
               {categoryName}
             </span>
           )}
           {isFeatured && (
-            <span className="absolute right-2 top-2 rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-md">
+            <span className={[
+              "absolute right-2 top-2 rounded-full bg-primary-600 font-semibold uppercase tracking-wide text-white shadow-md",
+              isHero ? "px-3 py-1 text-xs" : "px-2 py-[2px] text-[10px]",
+            ].join(" ")}>
               DESTACADO
             </span>
           )}
