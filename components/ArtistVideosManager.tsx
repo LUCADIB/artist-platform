@@ -5,6 +5,7 @@ import { VideoLinksManager, type VideoData } from "./VideoLinksManager";
 interface ArtistVideosManagerProps {
   artistId: string;
   initialVideos: VideoData[];
+  artistImageUrl?: string | null;
 }
 
 /**
@@ -14,6 +15,7 @@ interface ArtistVideosManagerProps {
 export default function ArtistVideosManager({
   artistId,
   initialVideos,
+  artistImageUrl,
 }: ArtistVideosManagerProps) {
   return (
     <div className="space-y-6">
@@ -24,6 +26,7 @@ export default function ArtistVideosManager({
         <VideoLinksManager
           artistId={artistId}
           initialVideos={initialVideos}
+          artistImageUrl={artistImageUrl}
         />
       </div>
     </div>

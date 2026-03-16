@@ -340,7 +340,8 @@ export function ArtistProfileForm({
         </h3>
         <ArtistVideosManager 
           artistId={artist.id} 
-          initialVideos={initialVideos} 
+          initialVideos={initialVideos}
+          artistImageUrl={artist.avatar_url}
         />
       </div>
 

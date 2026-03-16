@@ -190,7 +190,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
           )}
 
           {/* Videos */}          
-          <ArtistVideos artistId={safeArtist.id} />
+          <ArtistVideos artistId={safeArtist.id} artistImageUrl={primaryImage ?? null} />
 
           {/* Description */}
           {safeArtist.bio && (

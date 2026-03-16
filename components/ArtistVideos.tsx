@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "../lib/supabaseClient";
 import { isVerticalPlatform, type VideoPlatform } from "../lib/parseVideoUrl";
+import { VerticalVideoPlayer } from "./VerticalVideoPlayer";
 
 interface ArtistVideo {
   id: string;
@@ -11,6 +12,7 @@ interface ArtistVideo {
 
 interface ArtistVideosProps {
   artistId: string;
+  artistImageUrl?: string | null;
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -94,7 +96,7 @@ function generateFallbackEmbedUrl(videoUrl: string, platform: string | null): st
   return null;
 }
 
-export default async function ArtistVideos({ artistId }: ArtistVideosProps) {
+export default async function ArtistVideos({ artistId, artistImageUrl }: ArtistVideosProps) {
   const supabase = await createSupabaseServerClient();
 
   const { data: videos } = await supabase
@@ -137,34 +139,92 @@ export default async function ArtistVideos({ artistId }: ArtistVideosProps) {
     return null;
   }
 
+  // Split videos by orientation for smart layout
+  const verticalVideos = embeddable.filter((v) => v.isVertical);
+  const horizontalVideos = embeddable.filter((v) => !v.isVertical);
+  const isMixed = verticalVideos.length > 0 && horizontalVideos.length > 0;
+
   return (
     <div className="space-y-3">
       <h2 className="text-base font-semibold text-neutral-900 sm:text-lg">
         Videos
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {embeddable.map((video) => (
-          <div
-            key={video.id}
-            className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
-          >
-            <div
-              className={`relative w-full ${
-                video.isVertical ? "aspect-[9/16]" : "aspect-video"
-              }`}
-            >
-              <iframe
-                src={video.embedSrc!}
-                title={`Video — ${PLATFORM_LABELS[video.platform] || "video"}`}
-                className="absolute inset-0 h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
+      {isMixed ? (
+        /* Mixed layout: vertical videos in narrow left column, horizontal videos wide on the right */
+        <div className="flex flex-col gap-6 md:grid md:grid-cols-[260px_1fr]">
+          {/* Left column — vertical videos */}
+          <div className="space-y-4">
+            {verticalVideos.map((video) => (
+              <div
+                key={video.id}
+                className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
+              >
+                <div className="relative w-full aspect-[9/16]">
+                  <VerticalVideoPlayer
+                    embedUrl={video.embedSrc!}
+                    platform={video.platform}
+                    artistImageUrl={artistImageUrl}
+                    title={`Video — ${PLATFORM_LABELS[video.platform] || "video"}`}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+          {/* Right column — horizontal videos */}
+          <div className="space-y-4">
+            {horizontalVideos.map((video) => (
+              <div
+                key={video.id}
+                className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
+              >
+                <div className="relative w-full aspect-video">
+                  <iframe
+                    src={video.embedSrc!}
+                    title={`Video — ${PLATFORM_LABELS[video.platform] || "video"}`}
+                    className="absolute inset-0 h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Single-type layout: original responsive grid */
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {embeddable.map((video) => (
+            <div
+              key={video.id}
+              className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
+            >
+              <div
+                className={`relative w-full ${
+                  video.isVertical ? "aspect-[9/16]" : "aspect-video"
+                }`}
+              >
+                {video.isVertical ? (
+                  <VerticalVideoPlayer
+                    embedUrl={video.embedSrc!}
+                    platform={video.platform}
+                    artistImageUrl={artistImageUrl}
+                    title={`Video — ${PLATFORM_LABELS[video.platform] || "video"}`}
+                  />
+                ) : (
+                  <iframe
+                    src={video.embedSrc!}
+                    title={`Video — ${PLATFORM_LABELS[video.platform] || "video"}`}
+                    className="absolute inset-0 h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

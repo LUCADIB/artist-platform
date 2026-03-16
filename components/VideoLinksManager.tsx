@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { isVerticalPlatform, type VideoPlatform } from "@/lib/parseVideoUrl";
+import { VerticalVideoPlayer } from "./VerticalVideoPlayer";
 
 export interface VideoData {
   id: string;
@@ -14,6 +15,7 @@ export interface VideoData {
 interface VideoLinksManagerProps {
   artistId: string;
   initialVideos: VideoData[];
+  artistImageUrl?: string | null;
   maxVideos?: number;
 }
 
@@ -37,6 +39,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 export function VideoLinksManager({
   artistId,
   initialVideos,
+  artistImageUrl,
   maxVideos = 6,
 }: VideoLinksManagerProps) {
   const [videos, setVideos] = useState<VideoData[]>(initialVideos);
@@ -120,6 +123,68 @@ export function VideoLinksManager({
     }
   }
 
+  // Compute enriched video data for smart layout
+  const enrichedVideos = videos.map((video) => {
+    const computedPlatform = (video.platform?.toLowerCase() || "youtube") as VideoPlatform;
+    const isVertical = isVerticalPlatform(computedPlatform);
+    const embedUrl = video.embed_url;
+    return { ...video, computedPlatform, isVertical, embedUrl };
+  });
+
+  const verticalVids = enrichedVideos.filter((v) => v.isVertical);
+  const horizontalVids = enrichedVideos.filter((v) => !v.isVertical);
+  const isMixedLayout = verticalVids.length > 0 && horizontalVids.length > 0;
+
+  /** Renders a single video card — shared across layout modes */
+  function renderVideoCard(ev: (typeof enrichedVideos)[number]) {
+    return (
+      <div
+        key={ev.id}
+        className="group relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
+      >
+        {/* Aspect ratio container */}
+        <div className={ev.isVertical ? "aspect-[9/16]" : "aspect-video"}>
+          {ev.isVertical && ev.embedUrl ? (
+            <VerticalVideoPlayer
+              embedUrl={ev.embedUrl}
+              platform={ev.computedPlatform}
+              artistImageUrl={artistImageUrl}
+              title={`Video - ${PLATFORM_LABELS[ev.computedPlatform] || "Video"}`}
+            />
+          ) : ev.embedUrl ? (
+            <iframe
+              src={ev.embedUrl}
+              title={`Video - ${PLATFORM_LABELS[ev.computedPlatform] || "Video"}`}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-neutral-400 text-sm">
+              Vista previa no disponible
+            </div>
+          )}
+        </div>
+
+        {/* Platform badge */}
+        <div className="absolute left-2 top-2">
+          <span className="rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
+            {PLATFORM_LABELS[ev.computedPlatform] || ev.platform}
+          </span>
+        </div>
+
+        {/* Delete button */}
+        <button
+          onClick={() => handleDeleteVideo(ev.id)}
+          disabled={deletingId === ev.id}
+          className="absolute right-2 top-2 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-50"
+        >
+          {deletingId === ev.id ? "…" : "Eliminar"}
+        </button>
+      </div>
+    );
+  }
+
  return (
   <div className="space-y-4">
     {/* Add video input */}
@@ -174,53 +239,22 @@ export function VideoLinksManager({
             Aún no hay videos agregados.
           </p>
         </div>
+      ) : isMixedLayout ? (
+        /* Mixed layout: vertical left column, horizontal right column */
+        <div className="flex flex-col gap-6 md:grid md:grid-cols-[260px_1fr]">
+          {/* Left column — vertical videos */}
+          <div className="space-y-4">
+            {verticalVids.map(renderVideoCard)}
+          </div>
+          {/* Right column — horizontal videos */}
+          <div className="space-y-4">
+            {horizontalVids.map(renderVideoCard)}
+          </div>
+        </div>
       ) : (
+        /* Single-type layout: original responsive grid */
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {videos.map((video) => {
-            const platform = (video.platform?.toLowerCase() || "youtube") as VideoPlatform;
-            const isVertical = isVerticalPlatform(platform);
-            const embedUrl = video.embed_url;
-
-            return (
-              <div
-                key={video.id}
-                className="group relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
-              >
-                {/* Aspect ratio container */}
-                <div className={isVertical ? "aspect-[9/16]" : "aspect-video"}>
-                  {embedUrl ? (
-                    <iframe
-                      src={embedUrl}
-                      title={`Video - ${PLATFORM_LABELS[platform] || "Video"}`}
-                      className="absolute inset-0 h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-neutral-400 text-sm">
-                      Vista previa no disponible
-                    </div>
-                  )}
-                </div>
-
-                {/* Platform badge */}
-                <div className="absolute left-2 top-2">
-                  <span className="rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
-                    {PLATFORM_LABELS[platform] || video.platform}
-                  </span>
-                </div>
-
-                {/* Delete button */}
-                <button
-                  onClick={() => handleDeleteVideo(video.id)}
-                  disabled={deletingId === video.id}
-                  className="absolute right-2 top-2 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-50"
-                >
-                  {deletingId === video.id ? "…" : "Eliminar"}
-                </button>
-              </div>
-            );
-          })}
+          {enrichedVideos.map(renderVideoCard)}
         </div>
       )}
     </div>
