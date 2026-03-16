@@ -186,9 +186,9 @@ export function VideoLinksManager({
   }
 
  return (
-  <div className="space-y-4">
+  <div className="flex flex-col gap-4">
     {/* Add video input */}
-    <div className="flex gap-3">
+    <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
       <input
         type="url"
         placeholder="Pega el enlace del video (YouTube, TikTok, Instagram, Facebook, Vimeo)"
@@ -205,17 +205,18 @@ export function VideoLinksManager({
           }
         }}
         
-        className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
+        className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:flex-1"
       />
       <button
         type="button"
         onClick={handleAddVideo}
         disabled={submitting}
-        className="shrink-0 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full shrink-0 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
         {submitting ? "Procesando…" : "Agregar"}
       </button>
     </div>
+
       {/* Feedback messages */}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -239,22 +240,27 @@ export function VideoLinksManager({
             Aún no hay videos agregados.
           </p>
         </div>
-      ) : isMixedLayout ? (
-        /* Mixed layout: vertical left column, horizontal right column */
-        <div className="flex flex-col gap-6 md:grid md:grid-cols-[260px_1fr]">
-          {/* Left column — vertical videos */}
-          <div className="space-y-4">
-            {verticalVids.map(renderVideoCard)}
-          </div>
-          {/* Right column — horizontal videos */}
-          <div className="space-y-4">
-            {horizontalVids.map(renderVideoCard)}
-          </div>
-        </div>
       ) : (
-        /* Single-type layout: original responsive grid */
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {enrichedVideos.map(renderVideoCard)}
+        <div>
+          <p className="mb-2 text-sm text-gray-500">Presiona un video para eliminarlo</p>
+          {isMixedLayout ? (
+            /* Mixed layout: vertical left column, horizontal right column */
+            <div className="flex flex-col gap-4 md:grid md:grid-cols-[260px_1fr]">
+              {/* Left column — vertical videos */}
+              <div className="space-y-4">
+                {verticalVids.map(renderVideoCard)}
+              </div>
+              {/* Right column — horizontal videos */}
+              <div className="space-y-4">
+                {horizontalVids.map(renderVideoCard)}
+              </div>
+            </div>
+          ) : (
+            /* Single-type layout: responsive grid */
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              {enrichedVideos.map(renderVideoCard)}
+            </div>
+          )}
         </div>
       )}
     </div>
