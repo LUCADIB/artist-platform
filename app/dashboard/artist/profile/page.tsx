@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "../../../../lib/supabaseClient";
 import { ArtistProfileForm } from "../../../../components/ArtistProfileForm";
+import { StatusRefreshHandler } from "../../../../components/StatusRefreshHandler";
 import type { VideoData } from "../../../../components/VideoLinksManager";
 import { redirect } from "next/navigation";
 
@@ -61,6 +62,9 @@ export default async function ArtistProfilePage() {
 
   return (
     <div>
+      {/* Auto-refresh handler for pending status */}
+      {artist && <StatusRefreshHandler status={artist.status} />}
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-bold tracking-tight text-neutral-900 sm:text-2xl">
@@ -70,7 +74,7 @@ export default async function ArtistProfilePage() {
           Gestiona tu información pública como artista.
         </p>
       </div>
-      
+
       {/* Status Banner */}
       {artist && (
         <StatusBanner

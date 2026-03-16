@@ -17,13 +17,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  
   const { id } = params;
 
   let body;
   try {
     body = await request.json();
-    
   } catch (err) {
     console.error("[Artist PUT] Failed to parse body:", err);
     return NextResponse.json(
