@@ -18,7 +18,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
-  const { name, email, password, city, category_id, whatsapp } = body;
+  const { name, email, password, city, category_id, whatsapp, avatar_url } = body;
 
   if (!name || !email || !password) {
     return NextResponse.json(
@@ -95,6 +95,7 @@ const serviceClient = getServiceClient();
       city: city || null,
       category_id: category_id || null,
       whatsapp: whatsapp || null,
+      avatar_url: avatar_url || null,
       status: "pending_review",
       profile_id: userId,
       created_by_admin: false,

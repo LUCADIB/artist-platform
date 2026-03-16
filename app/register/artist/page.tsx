@@ -979,6 +979,38 @@ export default function ArtistRegisterPage() {
     setLoading(true);
 
     try {
+      // Step 1: Upload image BEFORE registration if profile image exists
+      let avatarUrl: string | null = null;
+
+      if (formData.profileImage) {
+        const tempId = crypto.randomUUID();
+        const uploadForm = new FormData();
+        uploadForm.append("file", formData.profileImage);
+        uploadForm.append("tempId", tempId);
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadForm,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadError = await uploadRes.json();
+          setError(uploadError.error || "Error al subir la imagen. Intenta de nuevo.");
+          setLoading(false);
+          return;
+        }
+
+        const uploadData = await uploadRes.json();
+        avatarUrl = uploadData.url;
+
+        if (!avatarUrl) {
+          setError("Error al obtener la URL de la imagen. Intenta de nuevo.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Step 2: Register artist with avatar_url
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -989,6 +1021,7 @@ export default function ArtistRegisterPage() {
           city: formData.city.trim() || null,
           category_id: formData.categoryId || null,
           whatsapp: formData.whatsapp.trim() || null,
+          avatar_url: avatarUrl,
         }),
       });
 
@@ -997,28 +1030,6 @@ export default function ArtistRegisterPage() {
       if (!res.ok) {
         setError(data.error || "Error al registrar. Intenta de nuevo.");
         return;
-      }
-
-      if (data.artistId && formData.profileImage) {
-        const uploadForm = new FormData();
-        uploadForm.append("file", formData.profileImage);
-        uploadForm.append("artistId", data.artistId);
-
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadForm,
-        });
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          if (uploadData.url) {
-            await fetch(`/api/artists/${data.artistId}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ avatar_url: uploadData.url }),
-            });
-          }
-        }
       }
 
       router.push(data.redirectTo);
