@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "../lib/supabaseClient";
-import { applyFeaturedOrdering } from "../lib/featuredOrdering";
+import { applyHomeFeaturedOrdering } from "../lib/featuredOrdering";
 import { ArtistCard } from "../components/ArtistCard";
 import { HeroSection } from "../components/HeroSection";
 import Link from "next/link";
@@ -40,7 +40,7 @@ export default async function HomePage({
 
     // Apply featured ordering (featured artists first)
     // Fetch 9 to detect if there are more than 8 results
-    searchQuery = applyFeaturedOrdering(searchQuery).limit(9);
+    searchQuery = applyHomeFeaturedOrdering(searchQuery).limit(9);
 
     const { data } = await searchQuery;
     artists = data;
@@ -52,11 +52,24 @@ export default async function HomePage({
       .eq("status", "approved")
       .not("home_featured_rank", "is", null);
 
-    featuredQuery = applyFeaturedOrdering(featuredQuery).limit(10);
+    featuredQuery = applyHomeFeaturedOrdering(featuredQuery).limit(10);
 
     const { data } = await featuredQuery;
     artists = data;
   }
+
+  // ==========================================================================
+  // HERO DETECTION (Phase 1 - Preparation)
+  // ==========================================================================
+  // The hero artist is the globally featured artist with rank 1.
+  // This artist will receive special visual treatment in future phases.
+  // Currently only detecting - no UI changes yet.
+  //
+  // Note: Due to unique index on home_featured_rank, there can only be
+  // one artist with rank 1, so find() returns the hero or undefined.
+  // ==========================================================================
+  const heroArtist = artists?.find((artist: any) => artist.home_featured_rank === 1);
+  const remainingArtists = artists?.filter((artist: any) => artist.home_featured_rank !== 1);
 
   // When searching, detect if there are more results and show only first 8
   const hasMore = isSearching && (artists?.length ?? 0) > 8;
