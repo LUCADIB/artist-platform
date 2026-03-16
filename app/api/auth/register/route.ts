@@ -44,38 +44,38 @@ export async function POST(request: NextRequest) {
   });
 
   // STEP 1 — AUTH USER
-// STEP 1 — AUTH USER (auto login enabled, email confirmation OFF)
-const { data: authData, error: authError } = await supabase.auth.signUp({
-  email,
-  password,
-});
+  // STEP 1 — AUTH USER (auto login enabled, email confirmation OFF)
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-if (authError) {
-  return NextResponse.json(
-    { error: authError.message },
-    { status: 400 }
-  );
-}
+  if (authError) {
+    return NextResponse.json(
+      { error: authError.message },
+      { status: 400 }
+    );
+  }
 
-// 🔥 asegurar que exista usuario
-const userId = authData.user?.id;
+  // 🔥 asegurar que exista usuario
+  const userId = authData.user?.id;
 
-if (!userId) {
-  return NextResponse.json(
-    { error: "No se pudo crear el usuario." },
-    { status: 500 }
-  );
-}
+  if (!userId) {
+    return NextResponse.json(
+      { error: "No se pudo crear el usuario." },
+      { status: 500 }
+    );
+  }
 
-// 🔥 asegurar sesión automática (UX marketplace)
-if (!authData.session) {
-  return NextResponse.json(
-    { error: "No se pudo iniciar sesión automáticamente." },
-    { status: 500 }
-  );
-}
+  // 🔥 asegurar sesión automática (UX marketplace)
+  if (!authData.session) {
+    return NextResponse.json(
+      { error: "No se pudo iniciar sesión automáticamente." },
+      { status: 500 }
+    );
+  }
 
-const serviceClient = getServiceClient();
+  const serviceClient = getServiceClient();
 
   // STEP 2 — PROFILE
   await serviceClient.from("profiles").insert({
