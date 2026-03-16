@@ -54,66 +54,27 @@ function validateFile(file: File): string | null {
 /**
  * POST /api/upload
  *
- * Securely uploads a file to Supabase Storage after verifying:
- * 1. User is authenticated
- * 2. User has an allowed role (artist, manager, admin)
- * 3. File passes validation (size, type, extension)
+ * Securely uploads a file to Supabase Storage.
  *
- * Authorization flow:
- * - Get session from cookies (SSR)
- * - Fetch user profile to check role
- * - Validate file constraints
- * - Only then perform upload
+ * Two modes:
+ * 1. Pre-registration (tempId provided): Anonymous upload allowed for new users
+ *    - Files stored in "pending/" folder
+ *    - Still validates file type/size/extension
+ *
+ * 2. Authenticated (artistId provided): Requires valid session
+ *    - Artists can only upload to their own folder
+ *    - Managers/admins can upload to any artist folder
+ *
+ * Security:
+ * - File validation always enforced (size, type, extension)
+ * - Authenticated uploads require role check
+ * - Pre-registration uploads limited to pending folder
  */
 export async function POST(request: NextRequest) {
   try {
-    // Step 1: Get authenticated session
-    const supabaseAuth = await createSupabaseRouteHandlerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseAuth.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "No autorizado. Inicia sesión para continuar." },
-        { status: 401 }
-      );
-    }
-
-    // Step 2: Get user profile and role
     const serviceClient = getServiceClient();
-    const { data: profile, error: profileError } = await serviceClient
-      .from("profiles")
-      .select("id, role")
-      .eq("id", user.id)
-      .maybeSingle();
 
-    if (profileError) {
-      console.error("[Upload POST] Profile lookup error:", profileError);
-      return NextResponse.json(
-        { error: "Error al verificar el perfil del usuario." },
-        { status: 500 }
-      );
-    }
-
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Perfil de usuario no encontrado." },
-        { status: 403 }
-      );
-    }
-
-    // Step 3: Check if user has allowed role
-    const allowedRoles = ["artist", "manager", "admin"];
-    if (!allowedRoles.includes(profile.role)) {
-      return NextResponse.json(
-        { error: "No tienes permiso para subir archivos." },
-        { status: 403 }
-      );
-    }
-
-    // Step 4: Parse and validate request
+    // Step 1: Parse request to determine upload mode
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const artistId = formData.get("artistId") as string | null;
@@ -134,7 +95,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 5: Validate file security constraints
+    // Step 2: Validate file security constraints (ALWAYS enforced)
     const validationError = validateFile(file);
     if (validationError) {
       return NextResponse.json(
@@ -143,64 +104,123 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 6: Additional authorization for artistId uploads
-    // Artists can only upload to their own folder (or pending folder for registration)
-    if (artistId && profile.role === "artist") {
-      const { data: artistProfile, error: artistError } = await serviceClient
-        .from("artists")
-        .select("id")
-        .eq("id", artistId)
-        .eq("profile_id", user.id) // Ensure ownership
+    // Step 3: Determine upload mode and authorization
+    let folderPath: string;
+
+    if (tempId && !artistId) {
+      // PRE-REGISTRATION MODE: Anonymous upload allowed
+      // Files go to "pending/" folder, validated by file constraints only
+      folderPath = `pending/${tempId}`;
+
+    } else if (artistId) {
+      // AUTHENTICATED MODE: Require valid session and role check
+
+      const supabaseAuth = await createSupabaseRouteHandlerClient();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabaseAuth.auth.getUser();
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: "No autorizado. Inicia sesión para continuar." },
+          { status: 401 }
+        );
+      }
+
+      // Get user profile and role
+      const { data: profile, error: profileError } = await serviceClient
+        .from("profiles")
+        .select("id, role")
+        .eq("id", user.id)
         .maybeSingle();
 
-      if (artistError) {
-        console.error("[Upload POST] Artist verification error:", artistError);
+      if (profileError) {
+        console.error("[Upload POST] Profile lookup error:", profileError);
         return NextResponse.json(
-          { error: "Error al verificar el perfil de artista." },
+          { error: "Error al verificar el perfil del usuario." },
           { status: 500 }
         );
       }
 
-      if (!artistProfile) {
+      if (!profile) {
         return NextResponse.json(
-          { error: "No tienes permiso para subir archivos a este artista." },
+          { error: "Perfil de usuario no encontrado." },
           { status: 403 }
         );
       }
-    }
 
-    // Step 7: Validate artistId exists (for managers/admins)
-    if (artistId && (profile.role === "manager" || profile.role === "admin")) {
-      const { data: artistExists, error: artistCheckError } = await serviceClient
-        .from("artists")
-        .select("id")
-        .eq("id", artistId)
-        .maybeSingle();
-
-      if (artistCheckError) {
-        console.error("[Upload POST] Artist existence check error:", artistCheckError);
+      // Check if user has allowed role
+      const allowedRoles = ["artist", "manager", "admin"];
+      if (!allowedRoles.includes(profile.role)) {
         return NextResponse.json(
-          { error: "Error al verificar el artista." },
-          { status: 500 }
+          { error: "No tienes permiso para subir archivos." },
+          { status: 403 }
         );
       }
 
-      if (!artistExists) {
-        return NextResponse.json(
-          { error: "Artista no encontrado." },
-          { status: 404 }
-        );
+      // Authorization for artistId uploads
+      if (profile.role === "artist") {
+        // Artists can only upload to their own folder
+        const { data: artistProfile, error: artistError } = await serviceClient
+          .from("artists")
+          .select("id")
+          .eq("id", artistId)
+          .eq("profile_id", user.id)
+          .maybeSingle();
+
+        if (artistError) {
+          console.error("[Upload POST] Artist verification error:", artistError);
+          return NextResponse.json(
+            { error: "Error al verificar el perfil de artista." },
+            { status: 500 }
+          );
+        }
+
+        if (!artistProfile) {
+          return NextResponse.json(
+            { error: "No tienes permiso para subir archivos a este artista." },
+            { status: 403 }
+          );
+        }
+      } else {
+        // Managers/admins: verify artist exists
+        const { data: artistExists, error: artistCheckError } = await serviceClient
+          .from("artists")
+          .select("id")
+          .eq("id", artistId)
+          .maybeSingle();
+
+        if (artistCheckError) {
+          console.error("[Upload POST] Artist existence check error:", artistCheckError);
+          return NextResponse.json(
+            { error: "Error al verificar el artista." },
+            { status: 500 }
+          );
+        }
+
+        if (!artistExists) {
+          return NextResponse.json(
+            { error: "Artista no encontrado." },
+            { status: 404 }
+          );
+        }
       }
+
+      folderPath = artistId;
+
+    } else {
+      // This shouldn't happen due to earlier validation, but handle it
+      return NextResponse.json(
+        { error: "artistId o tempId es requerido." },
+        { status: 400 }
+      );
     }
 
-    // Step 8: Prepare and perform upload
+    // Step 4: Prepare and perform upload
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const fileName = `${Date.now()}.${fileExt}`;
-
-    // Use "pending" folder for pre-registration uploads, otherwise artist folder
-    const folderId = artistId || tempId;
-    const folderPrefix = artistId ? "" : "pending/";
-    const filePath = `${folderPrefix}${folderId}/${fileName}`;
+    const filePath = `${folderPath}/${fileName}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
@@ -220,7 +240,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 9: Return public URL
+    // Step 5: Return public URL
     const { data: publicUrlData } = serviceClient.storage
       .from("artists")
       .getPublicUrl(filePath);
