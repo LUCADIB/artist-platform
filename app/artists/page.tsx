@@ -63,7 +63,7 @@ export default async function ArtistsPage({
   const hasNextPage = currentPage < totalPages;
 
   return (
-    <div className="mx-auto flex min-w-0 flex-col gap-6 px-3 pb-10 pt-8 sm:px-6 lg:px-8">
+    <div className="mx-auto flex min-w-0 flex-col gap-6 px-2 pb-10 pt-8 sm:px-6 lg:px-8">
       <header className="mx-auto flex w-full max-w-6xl flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
           Explora todos los artistas
@@ -87,7 +87,7 @@ export default async function ArtistsPage({
         {artists && artists.length > 0 ? (
           <>
             <div id="results">
-              <div className="columns-2 gap-3 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+              <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
                 {artists.map((artist: any) => (
                   <ArtistCard
                     key={artist.id}

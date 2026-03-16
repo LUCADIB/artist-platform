@@ -95,7 +95,7 @@ export default async function HomePage({
         </div>
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
-            <div className="columns-2 gap-3 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+            <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
               {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
