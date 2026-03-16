@@ -153,7 +153,7 @@ export function VerticalVideoPlayer({
             <img
               src={artistImageUrl!}
               alt=""
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
             {/* Dark gradient overlay for readability */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/5 to-black/50" />

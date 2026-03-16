@@ -160,7 +160,7 @@ export default async function ArtistVideos({ artistId, artistImageUrl }: ArtistV
                 key={video.id}
                 className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
               >
-                <div className="relative w-full aspect-[9/16]">
+                <div className="relative w-full aspect-square">
                   <VerticalVideoPlayer
                     embedUrl={video.embedSrc!}
                     platform={video.platform}
@@ -201,7 +201,7 @@ export default async function ArtistVideos({ artistId, artistImageUrl }: ArtistV
             >
               <div
                 className={`relative w-full ${
-                  video.isVertical ? "aspect-[9/16]" : "aspect-video"
+                  video.isVertical ? "aspect-square" : "aspect-video"
                 }`}
               >
                 {video.isVertical ? (

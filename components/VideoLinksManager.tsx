@@ -143,7 +143,7 @@ export function VideoLinksManager({
         className="group relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
       >
         {/* Aspect ratio container */}
-        <div className={ev.isVertical ? "aspect-[9/16]" : "aspect-video"}>
+        <div className={ev.isVertical ? "aspect-square" : "aspect-video"}>
           {ev.isVertical && ev.embedUrl ? (
             <VerticalVideoPlayer
               embedUrl={ev.embedUrl}
