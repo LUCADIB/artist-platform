@@ -76,7 +76,7 @@ export default async function HomePage({
         initialCategoryId={searchParams?.categoryId}
       />
 
-      <section className="mx-auto w-full max-w-6xl px-3 pb-10 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-6xl px-2 pb-10 sm:px-6 lg:px-8">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-neutral-900 sm:text-xl">

@@ -42,60 +42,67 @@ export function ArtistCard({
   }, []);
 
   return (
-    <article
-      ref={ref}
-      className={[
-        "group flex flex-col overflow-hidden rounded-2xl break-inside-avoid mb-3 sm:mb-0",
-        "border border-neutral-100 bg-white shadow-[0_1px_6px_rgba(0,0,0,0.06)]",
-        "active:scale-[0.97] sm:border-neutral-200 sm:shadow-sm sm:hover:-translate-y-1 sm:hover:shadow-lg",
-        "transition-all duration-300 ease-out",
-        isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
-      ].join(" ")}
-    >
-      <div className="relative aspect-square overflow-hidden bg-neutral-100 sm:aspect-[4/3]">
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={name}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs font-medium text-neutral-400">
-            Sin foto
-          </div>
-        )}
-        {categoryName && (
-          <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-white sm:px-3 sm:py-1 sm:text-[11px]">
-            {categoryName}
-          </span>
-        )}
-      </div>
+    <Link href={href} className="block break-inside-avoid mb-2 sm:mb-0">
+      <article
+        ref={ref}
+        className={[
+          "group",
+          /* Desktop: card chrome */
+          "sm:flex sm:flex-col sm:overflow-hidden sm:rounded-2xl sm:border sm:border-neutral-200 sm:bg-white sm:shadow-sm sm:hover:-translate-y-1 sm:hover:shadow-lg",
+          /* Tap feedback + reveal */
+          "active:scale-[0.97] transition-all duration-300 ease-out",
+          isRevealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+        ].join(" ")}
+      >
+        {/* ── Image tile ── */}
+        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-neutral-100 sm:aspect-[4/3] sm:rounded-none">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={name}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs font-medium text-neutral-400">
+              Sin foto
+            </div>
+          )}
+          {categoryName && (
+            <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.15em] text-white sm:px-3 sm:py-1 sm:text-[11px]">
+              {categoryName}
+            </span>
+          )}
+        </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-2 sm:gap-2 sm:p-4">
-        <div className="flex items-start justify-between gap-2 sm:gap-3">
+        {/* ── Mobile: text below tile ── */}
+        <div className="mt-1.5 px-0.5 sm:hidden">
+          <h3 className="text-xs font-semibold leading-snug tracking-tight text-neutral-900">
+            {name}
+          </h3>
+          {city && (
+            <p className="mt-0.5 text-[10px] text-neutral-500">{city}</p>
+          )}
+        </div>
+
+        {/* ── Desktop: card body with CTA ── */}
+        <div className="hidden sm:flex sm:flex-1 sm:flex-col sm:gap-2 sm:p-4">
           <div>
-            <h3 className="text-xs font-semibold leading-snug tracking-tight text-neutral-900 sm:text-sm">
+            <h3 className="text-sm font-semibold leading-snug tracking-tight text-neutral-900">
               {name}
             </h3>
             {city && (
-              <p className="mt-0.5 text-[10px] text-neutral-500 sm:mt-1 sm:text-xs">
-                {city}
-              </p>
+              <p className="mt-1 text-xs text-neutral-500">{city}</p>
             )}
           </div>
+          <div className="mt-3">
+            <span className="btn-primary flex w-full justify-center !h-9 !py-0 text-sm">
+              Ver perfil
+            </span>
+          </div>
         </div>
-
-        <div className="mt-1.5 flex items-center justify-between gap-2 sm:mt-3">
-          <Link
-            href={href}
-            className="btn-primary w-full justify-center !h-8 !py-0 text-[11px] sm:!h-9 sm:text-sm"
-          >
-            Ver perfil
-          </Link>
-        </div>
-      </div>
-    </article>
+      </article>
+    </Link>
   );
 }
