@@ -84,20 +84,20 @@ export function ArtistCard({
           )}
           {categoryName && (
             <span className={[
-              "absolute left-2 top-2 rounded-full bg-black/70 font-medium uppercase text-white",
+              "absolute left-1.5 top-1.5 sm:left-2 sm:top-2 bg-black/70 uppercase text-white",
               isHero
-                ? "px-3 py-1 text-xs tracking-[0.15em]"
-                : "px-1.5 py-[2px] text-[9px] tracking-wider md:px-2 md:py-[3px] md:text-[10px] md:tracking-[0.15em]",
+                ? "rounded-full px-3 py-1 text-xs font-medium tracking-[0.15em]"
+                : "rounded-md px-1 py-[1px] text-[8px] font-medium tracking-normal sm:rounded-lg sm:px-1.5 sm:py-[2px] sm:text-[9px] sm:tracking-wider md:rounded-full md:px-2 md:py-[3px] md:text-[10px] md:font-medium md:tracking-[0.15em]",
             ].join(" ")}>
               {categoryName}
             </span>
           )}
           {isFeatured && (
             <span className={[
-              "absolute right-2 top-2 rounded-full bg-primary-600 font-semibold uppercase text-white shadow-md",
+              "absolute right-1.5 top-1.5 sm:right-2 sm:top-2 bg-primary-600 uppercase text-white",
               isHero
-                ? "px-3 py-1 text-xs tracking-wide"
-                : "px-1.5 py-[2px] text-[9px] tracking-wider md:px-2 md:py-[3px] md:text-[10px] md:tracking-wide",
+                ? "rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-md"
+                : "rounded-md px-1 py-[1px] text-[8px] font-medium tracking-normal shadow-sm sm:rounded-lg sm:px-1.5 sm:py-[2px] sm:text-[9px] sm:tracking-wider md:rounded-full md:px-2 md:py-[3px] md:text-[10px] md:font-semibold md:tracking-wide md:shadow-md",
             ].join(" ")}>
               DESTACADO
             </span>
