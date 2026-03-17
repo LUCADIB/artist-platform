@@ -55,8 +55,8 @@ export function VideoLinksManager({
   }, [initialVideos]);
 
   async function handleAddVideo() {
-  setError(null);
-  setSuccess(false);
+    setError(null);
+    setSuccess(false);
 
     if (!url.trim()) {
       setError("Por favor, ingresa una URL válida.");
@@ -143,7 +143,10 @@ export function VideoLinksManager({
         className="group relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-900"
       >
         {/* Aspect ratio container */}
-        <div className={ev.isVertical ? "aspect-square" : "aspect-video"}>
+        <div
+          className={`relative w-full ${ev.isVertical ? "aspect-square" : "aspect-video"
+            }`}
+        >
           {ev.isVertical && ev.embedUrl ? (
             <VerticalVideoPlayer
               embedUrl={ev.embedUrl}
@@ -185,37 +188,37 @@ export function VideoLinksManager({
     );
   }
 
- return (
-  <div className="flex flex-col gap-4">
-    {/* Add video input */}
-    <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-      <input
-        type="url"
-        placeholder="Pega el enlace del video (YouTube, TikTok, Instagram, Facebook, Vimeo)"
-        value={url}
-        onChange={(e) => {
-          setUrl(e.target.value);
-          setError(null);
-          setSuccess(false);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleAddVideo();
-          }
-        }}
-        
-        className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:flex-1"
-      />
-      <button
-        type="button"
-        onClick={handleAddVideo}
-        disabled={submitting}
-        className="w-full shrink-0 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-      >
-        {submitting ? "Procesando…" : "Agregar"}
-      </button>
-    </div>
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Add video input */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+        <input
+          type="url"
+          placeholder="Pega el enlace del video (YouTube, TikTok, Instagram, Facebook, Vimeo)"
+          value={url}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            setError(null);
+            setSuccess(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAddVideo();
+            }
+          }}
+
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:flex-1"
+        />
+        <button
+          type="button"
+          onClick={handleAddVideo}
+          disabled={submitting}
+          className="w-full shrink-0 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        >
+          {submitting ? "Procesando…" : "Agregar"}
+        </button>
+      </div>
 
       {/* Feedback messages */}
       {error && (
@@ -257,7 +260,7 @@ export function VideoLinksManager({
             </div>
           ) : (
             /* Single-type layout: responsive grid */
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-3">
               {enrichedVideos.map(renderVideoCard)}
             </div>
           )}

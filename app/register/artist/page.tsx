@@ -62,17 +62,16 @@ const ProgressIndicator = memo(function ProgressIndicator({
         const stepNumber = index + 1;
         const isActive = stepNumber === currentStep;
         const isCompleted = stepNumber < currentStep;
-        
+
         return (
           <div
             key={index}
-            className={`rounded-full transition-all duration-200 ease-out ${
-              isActive
-                ? "w-6 h-1.5 bg-neutral-900"
-                : isCompleted
+            className={`rounded-full transition-all duration-200 ease-out ${isActive
+              ? "w-6 h-1.5 bg-neutral-900"
+              : isCompleted
                 ? "w-1.5 h-1.5 bg-neutral-400"
                 : "w-1.5 h-1.5 bg-neutral-200"
-            }`}
+              }`}
           />
         );
       })}
@@ -227,11 +226,10 @@ const StepCategoryCity = memo(function StepCategoryCity({
                     onCategoryChange(cat.id);
                     if (categoryIdError) onCategoryErrorClear();
                   }}
-                  className={`p-3.5 rounded-xl border-2 text-left transition-all duration-150 ${
-                    categoryId === cat.id
-                      ? "border-neutral-900 bg-neutral-50"
-                      : "border-neutral-200 bg-white active:border-neutral-300"
-                  }`}
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all duration-150 ${categoryId === cat.id
+                    ? "border-neutral-900 bg-neutral-50"
+                    : "border-neutral-200 bg-white active:border-neutral-300"
+                    }`}
                 >
                   <span className="font-medium text-neutral-900 text-sm">{cat.name}</span>
                 </button>
@@ -357,7 +355,7 @@ const StepWhatsAppPhoto = memo(function StepWhatsAppPhoto({
               if (whatsappError) onWhatsappErrorClear();
             }}
             className={inputClass}
-            placeholder="593999999999"
+            placeholder="Ej: 0991234567"
             disabled={disabled}
           />
           {whatsappError ? (
@@ -805,7 +803,7 @@ export default function ArtistRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
+
   // Animation key for step transitions
   const [animationKey, setAnimationKey] = useState(0);
 
@@ -1062,7 +1060,7 @@ export default function ArtistRegisterPage() {
   return (
     <>
       {/* ========== MOBILE WIZARD (Focus Mode - Full Screen Overlay) ========== */}
-      <div 
+      <div
         ref={mobileContainerRef}
         className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden"
       >
@@ -1339,7 +1337,7 @@ export default function ArtistRegisterPage() {
                   value={formData.whatsapp}
                   onChange={(e) => setFormData((prev) => ({ ...prev, whatsapp: e.target.value }))}
                   className={inputClass}
-                  placeholder="Número de WhatsApp (ej: 593999999999)"
+                  placeholder="Número de WhatsApp (ej: 0991234567)"
                   disabled={loading}
                 />
                 <p className="mt-1 text-xs text-neutral-400">
