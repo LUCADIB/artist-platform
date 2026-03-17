@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "../lib/supabaseClient";
-import { applyFeaturedOrdering } from "../lib/featuredOrdering";
+import { applyHomeFeaturedOrdering } from "../lib/featuredOrdering";
 import { ArtistCard } from "../components/ArtistCard";
 import { HeroSection } from "../components/HeroSection";
 import Link from "next/link";
@@ -40,7 +40,7 @@ export default async function HomePage({
 
     // Apply featured ordering (featured artists first)
     // Fetch 9 to detect if there are more than 8 results
-    searchQuery = applyFeaturedOrdering(searchQuery).limit(9);
+    searchQuery = applyHomeFeaturedOrdering(searchQuery).limit(9);
 
     const { data } = await searchQuery;
     artists = data;
@@ -52,11 +52,24 @@ export default async function HomePage({
       .eq("status", "approved")
       .not("home_featured_rank", "is", null);
 
-    featuredQuery = applyFeaturedOrdering(featuredQuery).limit(10);
+    featuredQuery = applyHomeFeaturedOrdering(featuredQuery).limit(10);
 
     const { data } = await featuredQuery;
     artists = data;
   }
+
+  // ==========================================================================
+  // HERO DETECTION (Phase 1 - Preparation)
+  // ==========================================================================
+  // The hero artist is the globally featured artist with rank 1.
+  // This artist will receive special visual treatment in future phases.
+  // Currently only detecting - no UI changes yet.
+  //
+  // Note: Due to unique index on home_featured_rank, there can only be
+  // one artist with rank 1, so find() returns the hero or undefined.
+  // ==========================================================================
+  const heroArtist = artists?.find((artist: any) => artist.home_featured_rank === 1);
+  const remainingArtists = artists?.filter((artist: any) => artist.home_featured_rank !== 1);
 
   // When searching, detect if there are more results and show only first 8
   const hasMore = isSearching && (artists?.length ?? 0) > 8;
@@ -88,14 +101,15 @@ export default async function HomePage({
           </div>
           <a
             href="/artists"
-            className="text-xs font-medium text-primary-600 hover:text-primary-700"
+            className="text-xs font-medium text-neutral-900 underline-offset-4 hover:underline"
           >
             Ver todos los artistas
           </a>
         </div>
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
-            <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+            {/* Artist grid — hero artist gets col-span-2 row-span-2 via isHero */}
+            <div className="grid grid-cols-2 gap-4 auto-rows-fr md:grid-cols-3 lg:grid-cols-4">
               {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
@@ -105,6 +119,8 @@ export default async function HomePage({
                   city={artist.city}
                   categoryName={artist.categories?.name}
                   avatarUrl={artist.avatar_url}
+                  isFeatured={artist.home_featured_rank != null}
+                  isHero={artist.home_featured_rank === 1}
                 />
               ))}
             </div>

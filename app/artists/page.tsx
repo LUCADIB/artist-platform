@@ -1,5 +1,8 @@
 import { createSupabaseServerClient } from "../../lib/supabaseClient";
-import { applyFeaturedOrdering } from "../../lib/featuredOrdering";
+import {
+  applyHomeFeaturedOrdering,
+  applyCategoryFeaturedOrdering,
+} from "../../lib/featuredOrdering";
 import { ArtistCard } from "../../components/ArtistCard";
 import { SearchBar } from "../../components/SearchBar";
 
@@ -34,24 +37,32 @@ export default async function ArtistsPage({
 
   let artistsQuery = supabase
     .from("artists")
-    .select("id, slug, name, city, avatar_url, home_featured_rank, categories ( name )", {
+    .select("id, slug, name, city, avatar_url, home_featured_rank, category_featured_rank, categories ( name )", {
       count: "exact"
     })
     .eq("status", "approved"); // Only show approved artists publicly
 
-  // Apply featured ordering: featured artists first, then by creation date
-  artistsQuery = applyFeaturedOrdering(artistsQuery);
+  // Apply category filter before ordering (for category-specific featured ordering)
+  if (searchParams?.categoryId) {
+    artistsQuery = artistsQuery.eq("category_id", searchParams.categoryId);
+  }
 
-  // Apply pagination
-  artistsQuery = artistsQuery.range(from, to);
-
+  // Apply text filter if provided
   if (searchParams?.q) {
     artistsQuery = artistsQuery.ilike("name", `%${searchParams.q}%`);
   }
 
+  // Apply featured ordering based on context:
+  // - Category filter active: use category ordering (home_featured > category_featured > created_at)
+  // - No category filter: use home ordering (home_featured > created_at)
   if (searchParams?.categoryId) {
-    artistsQuery = artistsQuery.eq("category_id", searchParams.categoryId);
+    artistsQuery = applyCategoryFeaturedOrdering(artistsQuery);
+  } else {
+    artistsQuery = applyHomeFeaturedOrdering(artistsQuery);
   }
+
+  // Apply pagination
+  artistsQuery = artistsQuery.range(from, to);
 
   const { data: artists, count } = await artistsQuery;
 
