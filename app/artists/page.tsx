@@ -37,7 +37,7 @@ export default async function ArtistsPage({
 
   let artistsQuery = supabase
     .from("artists")
-    .select("id, slug, name, city, avatar_url, home_featured_rank, category_featured_rank, categories ( name )", {
+    .select("id, slug, name, city, avatar_url, home_featured_rank, category_featured_rank, categories ( id, name )", {
       count: "exact"
     })
     .eq("status", "approved"); // Only show approved artists publicly
@@ -47,9 +47,36 @@ export default async function ArtistsPage({
     artistsQuery = artistsQuery.eq("category_id", searchParams.categoryId);
   }
 
-  // Apply text filter if provided
+  // ==========================================================================
+  // GLOBAL SEARCH: Match artist name OR category name
+  // ==========================================================================
+  // Users think in terms of intent, not database fields.
+  // Typing "dj" should show artists in DJ category, not just artists with "dj" in name.
+  //
+  // Implementation:
+  // 1. Find category IDs matching the query
+  // 2. Use .or() to match artist name OR category_id in matching IDs
+  // ==========================================================================
   if (searchParams?.q) {
-    artistsQuery = artistsQuery.ilike("name", `%${searchParams.q}%`);
+    const likePattern = `%${searchParams.q}%`;
+
+    // Find category IDs that match the query
+    const { data: matchingCategories } = await supabase
+      .from("categories")
+      .select("id")
+      .ilike("name", likePattern);
+
+    const matchingCategoryIds = (matchingCategories ?? []).map((c) => c.id);
+
+    // Build OR filter: artist name OR category_id in matching IDs
+    if (matchingCategoryIds.length > 0) {
+      artistsQuery = artistsQuery.or(
+        `name.ilike.%${searchParams.q}%,category_id.in.(${matchingCategoryIds.join(",")})`
+      );
+    } else {
+      // No matching categories, only search by artist name
+      artistsQuery = artistsQuery.ilike("name", likePattern);
+    }
   }
 
   // Apply featured ordering based on context:
@@ -156,7 +183,7 @@ export default async function ArtistsPage({
               No se encontraron artistas
             </p>
             <p className="text-xs text-neutral-500">
-              Intenta buscar por nombre o categoría.
+              Intenta buscar por nombre de artista o categoría.
             </p>
           </div>
         )}

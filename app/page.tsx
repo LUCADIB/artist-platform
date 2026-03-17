@@ -25,15 +25,42 @@ export default async function HomePage({
     // When searching: query ALL approved artists, apply filters and featured ordering
     let searchQuery = supabase
       .from("artists")
-      .select("id, slug, name, city, avatar_url, home_featured_rank, categories ( name )")
+      .select("id, slug, name, city, avatar_url, home_featured_rank, categories ( id, name )")
       .eq("status", "approved");
 
-    // Apply text filter if provided
+    // ==========================================================================
+    // GLOBAL SEARCH: Match artist name OR category name
+    // ==========================================================================
+    // Users think in terms of intent, not database fields.
+    // Typing "dj" should show artists in DJ category, not just artists with "dj" in name.
+    //
+    // Implementation:
+    // 1. Find category IDs matching the query
+    // 2. Use .or() to match artist name OR category_id in matching IDs
+    // ==========================================================================
     if (searchParams?.q) {
-      searchQuery = searchQuery.ilike("name", `%${searchParams.q}%`);
+      const likePattern = `%${searchParams.q}%`;
+
+      // Find category IDs that match the query
+      const { data: matchingCategories } = await supabase
+        .from("categories")
+        .select("id")
+        .ilike("name", likePattern);
+
+      const matchingCategoryIds = (matchingCategories ?? []).map((c) => c.id);
+
+      // Build OR filter: artist name OR category_id in matching IDs
+      if (matchingCategoryIds.length > 0) {
+        searchQuery = searchQuery.or(
+          `name.ilike.%${searchParams.q}%,category_id.in.(${matchingCategoryIds.join(",")})`
+        );
+      } else {
+        // No matching categories, only search by artist name
+        searchQuery = searchQuery.ilike("name", likePattern);
+      }
     }
 
-    // Apply category filter if provided
+    // Apply category filter if provided (works alongside text search)
     if (searchParams?.categoryId) {
       searchQuery = searchQuery.eq("category_id", searchParams.categoryId);
     }
