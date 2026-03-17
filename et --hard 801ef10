@@ -1,0 +1,58 @@
+[33m801ef10[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix-ui-whatsapp-preview[m[33m, [m[1;31morigin/fix-ui-whatsapp-preview[m[33m)[m nuevo dominio
+[33mfffdf1e[m recuperacion de contraseña nueva logica
+[33mf8bb681[m Fix WhatsApp placeholder + Fix video preview mobile grid layout
+[33mc2e66b9[m link redireccion cambio de clave ajustado
+[33m77d7057[m Merge branch 'detalles-finales'
+[33m8dc4dfc[m buscador optimizado
+[33mdddefb1[m Merge branch 'detalles-finales'
+[33mda55f5b[m cards listas final
+[33mf87fd01[m Merge branch 'detalles-finales'
+[33m7c77da1[m indicadores pequenos
+[33ma740a0b[m merge detalles finales + landing + destacados + video hero
+[33m8f401dc[m listas paginas landings
+[33m3054e89[m hero cards listo
+[33madc3926[m destacados listo
+[33mbc4c296[m feat(ranking): add category featured rank backend + ordering architecture
+[33m82ae57f[m arreglo y boton ver mi perfil publico
+[33me649776[m merge: security fixes and registration upload fixMerge branch 'detalles-finales' merge segurity fixes
+[33mb6a6f62[m fix(upload): allow anonymous avatar upload during artist registration
+[33m04b3f32[m cambio correo manager a lucadib
+[33m3203171[m PARCHE 4 /api/artists/[id] DELETE
+[33m1a670e3[m Seguridad en /api/upload POST
+[33m9b4081c[m Seguridad en /api/availability POST
+[33m088b98b[m Seguridad en /api/availability/[id]
+[33mee74425[m foto de perfil en registro
+[33m625b9d0[m carga de video
+[33mada077e[m cleanup debug logs + stabilize approval status auto refresh
+[33m4e13d58[m cards en pc tipo pinterest
+[33m2f297ef[m cards listas tipo pinterest
+[33m07c90d1[m cards listas
+[33m12a5c24[m mejora en cards
+[33m3f465af[m feat: square branded preview cards for vertical social videos + controlled modal player UX
+[33m9930d39[m cleanup: remove accidental file
+[33m1735188[m[33m ([m[1;31morigin/pruebas-dev[m[33m, [m[1;32mpruebas-dev[m[33m)[m fix attempt navbar mobile login + desktop alignment adjustments
+[33mb5c0a86[m navbar ux refactor + hero cleanup + auth-aware labels + mobile login navbar attempt
+[33m2a71f9a[m chore: remove debug logs from artist management flow
+[33mf91b243[m fix: debug secure manager assignment flow and session resolution in artist management toggle
+[33mde50e33[m feat: implement isolated mobile registration flow with focus UX, staggered transitions and ergonomic CTA placement
+[33mf4d0a75[m feat: premium mobile onboarding UX with step animations, scroll reset and improved CTA ergonomics
+[33m0f14b1a[m fix: improve mobile onboarding UX with keyboard-safe layout, memoized steps and stable input focus
+[33mc82eee8[m feat: redesign artist registration with mobile wizard, validation and profile photo upload
+[33m44b7e34[m feat: password reset system + resend SMTP auth emails + email templates update
+[33mf1f0759[m fix manager registration email resend from address
+[33ma741102[m redeploy
+[33m40c0d51[m feat: transactional email on booking request with Resend + artist notification flow
+[33m5262518[m fix: artist requests dashboard + booking_requests real columns + marketplace reservation flow
+[33mbd8f0bc[m feat: auto refresh manager dashboard with router.refresh + state sync
+[33mfe15214[m feat: featured system + search flow + videos manager stable
+[33m6126e9b[m feat: manager artist search and video input validation fix
+[33m36c77b3[m feat: unified video system for artists and manager with server parsing and security fixes
+[33ma9f146b[m fix typing artistVideos
+[33m6d4097f[m fix availability notes sync
+[33m7ac0097[m feat: artist dashboard video management + availability fixes + approval workflow
+[33mb5aab49[m feat: artist self registration + approval + availability + managed workflow stable
+[33m7d34c00[m[33m ([m[1;32mai-dev[m[33m)[m mobile grid + card density + button fix
+[33m2688b7d[m centrar img perfil artist
+[33mb5f8d2a[m favicon + viewport safari fix
+[33m3663afc[m fix mobile search scroll + ios zoom inputs
+[33m8c92512[m initial marketplace version

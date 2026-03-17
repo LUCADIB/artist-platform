@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY!);
+type EmailResult =
+  | { success: true; id?: string }
+  | { success: false; error: unknown };
 
 export async function sendBookingEmailToArtist({
   artistEmail,
@@ -18,9 +21,9 @@ export async function sendBookingEmailToArtist({
   eventDate: string;
   eventTime: string;
   city: string;
-}) {
+}): Promise<EmailResult> {
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: "1000Artistas <noreply@1000artistas.com>",
       to: artistEmail,
       subject: "Nueva solicitud de reserva",
@@ -35,10 +38,11 @@ export async function sendBookingEmailToArtist({
       `,
     });
 
-    return { success: true };
+    return { success: true, id: result.data?.id };
+
   } catch (error) {
     console.error(error);
-    return { success: false };
+    return { success: false, error };
   }
 }
 
