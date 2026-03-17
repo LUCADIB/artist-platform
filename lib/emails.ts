@@ -86,11 +86,64 @@ export async function sendArtistApprovedEmail({
     to: artistEmail,
     subject: "Tu perfil ha sido aprobado 🎉",
     html: `
-      <h2>¡Felicidades ${artistName}!</h2>
-      <p>Tu perfil ya fue aprobado y ahora es visible en QuitoShows.</p>
-      <p>Puedes entrar a tu dashboard y comenzar a recibir solicitudes.</p>
-      <a href="https://quitoshows.com/login">Ir al dashboard</a>
-    `,
+<div style="background:#0f0f0f;padding:40px 20px;font-family:Arial,Helvetica,sans-serif;color:#ffffff">
+
+  <div style="max-width:600px;margin:0 auto;background:#151515;border-radius:16px;padding:40px">
+
+    <div style="text-align:center;margin-bottom:30px">
+      <img src="https://xvrzlrgzcamromyxawiz.supabase.co/storage/v1/object/public/artists/logo%20600px%20transparente.png" width="170" />
+    </div>
+
+    <h1 style="text-align:center;font-size:30px;margin-bottom:10px">
+      🎉 ¡Felicidades ${artistName}!
+    </h1>
+
+    <p style="text-align:center;font-size:18px;color:#cfcfcf;margin-bottom:30px">
+      Ya eres oficialmente un <b>Artista QuitoShows</b>.
+    </p>
+
+    <p style="text-align:center;color:#9ca3af;margin-bottom:40px">
+      Desde ahora clientes reales podrán descubrir tu talento y contratarte.
+    </p>
+
+    <div style="background:#1f2937;border-radius:12px;padding:20px;margin-bottom:15px">
+      <h3 style="margin:0 0 5px 0">📸 Usa tu mejor foto</h3>
+      <p style="margin:0;color:#9ca3af">Una imagen profesional aumenta tus clics y contrataciones.</p>
+    </div>
+
+    <div style="background:#1f2937;border-radius:12px;padding:20px;margin-bottom:15px">
+      <h3 style="margin:0 0 5px 0">🎬 Agrega videos impactantes</h3>
+      <p style="margin:0;color:#9ca3af">YouTube, Instagram o shows en vivo. Los artistas con video venden más.</p>
+    </div>
+
+    <div style="background:#1f2937;border-radius:12px;padding:20px;margin-bottom:15px">
+      <h3 style="margin:0 0 5px 0">📝 Cuenta tu historia</h3>
+      <p style="margin:0;color:#9ca3af">Describe tu estilo, experiencia y lo que te hace único.</p>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#2563eb,#1e40af);border-radius:14px;padding:25px;margin-top:30px;margin-bottom:30px">
+      <h2 style="margin:0 0 10px 0">⭐ Aparece primero con Destacados</h2>
+      <p style="margin:0;color:#e5e7eb">
+        Los artistas destacados obtienen <b>muchísima más visibilidad</b>, aparecen en la página principal y reciben más solicitudes de booking.  
+        Si deseas destacar y estar entre <b>los primeros</b>, contáctanos.
+      </p>
+    </div>
+
+    <div style="text-align:center;margin-top:30px">
+      <a href="https://quitoshows.com/dashboard/artist"
+         style="background:#2563eb;color:white;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:bold">
+         Optimizar mi perfil ahora
+      </a>
+    </div>
+
+    <p style="text-align:center;margin-top:40px;color:#6b7280;font-size:13px">
+      QuitoShows — Marketplace & Agencia de Artistas
+    </p>
+
+  </div>
+
+</div>
+`,
   });
 }
 
