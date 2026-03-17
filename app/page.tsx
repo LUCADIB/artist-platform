@@ -109,7 +109,7 @@ export default async function HomePage({
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
             {/* Artist grid — hero artist gets col-span-2 row-span-2 via isHero */}
-            <div className="grid grid-cols-2 gap-4 auto-rows-fr md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 auto-rows-fr md:grid-cols-3 md:gap-4 lg:grid-cols-4">
               {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
