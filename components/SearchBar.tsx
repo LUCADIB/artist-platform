@@ -67,12 +67,12 @@ export function SearchBar({
           htmlFor="search-name"
           className="text-xs font-medium text-neutral-600"
         >
-          Buscar por nombre
+          Buscar artistas o categorías
         </label>
         <input
           id="search-name"
           className="input text-base"
-          placeholder="Ej. DJ, banda, show..."
+          placeholder="Ej. DJ, banda, show, música..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
