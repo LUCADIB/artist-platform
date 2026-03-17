@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 export default function ContactPage() {
 
   const whatsappMessage = encodeURIComponent(
-    "Hola QuitoShows 👋 quiero información para destacar mi perfil o trabajar con ustedes como agencia artística."
+    "Hola 1000Artistas 👋 quiero información para destacar mi perfil o trabajar con ustedes como agencia artística."
   );
 
   return (
@@ -33,7 +33,7 @@ export default function ContactPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-7xl font-bold leading-tight max-w-5xl"
           >
-            Impulsa tu carrera artística con QuitoShows
+            Impulsa tu carrera artística con 1000Artistas
           </motion.h1>
 
           <motion.p
@@ -85,7 +85,7 @@ export default function ContactPage() {
             transition={{ delay: 0.2 }}
             className="bg-gradient-to-br from-blue-600 to-blue-800 p-10 rounded-3xl shadow-2xl"
           >
-            <h3 className="text-3xl font-bold">🚀 Trabajar con QuitoShows como agencia</h3>
+            <h3 className="text-3xl font-bold">🚀 Trabajar con 1000Artistas.com como agencia</h3>
 
             <p className="mt-6 text-blue-100 text-lg">
               Recibe apoyo estratégico para mejorar tu perfil, tu imagen profesional y acceder a nuevas oportunidades de eventos.

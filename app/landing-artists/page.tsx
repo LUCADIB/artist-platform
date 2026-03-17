@@ -45,7 +45,7 @@ export default function LandingArtists() {
             href="/register/artist"
             className="mt-10 bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-2xl shadow-blue-600/40 transition"
           >
-            Quiero ser artista QuitoShows
+            Quiero ser estar en 1000Artistas
           </Link>
 
         </div>
@@ -105,7 +105,7 @@ export default function LandingArtists() {
         </h2>
 
         <p className="mt-6 text-gray-400 text-lg">
-          Posiciónate desde ahora, construye reputación y crece junto a QuitoShows.
+          Posiciónate desde ahora, construye reputación y crece junto a 1000Artistas.com
         </p>
 
         <Link

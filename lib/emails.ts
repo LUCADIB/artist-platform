@@ -23,7 +23,7 @@ export async function sendBookingEmailToArtist({
 
   try {
     const result = await resend.emails.send({
-      from: "QuitoShows <noreply@quitoshows.com>",
+      from: "1000Artistas <noreply@1000artistas.com>",
       to: artistEmail,
       subject: "Nueva solicitud de reserva",
       html: `
@@ -82,7 +82,7 @@ export async function sendArtistApprovedEmail({
   artistName: string;
 }) {
   await resend.emails.send({
-    from: "QuitoShows <noreply@quitoshows.com>",
+    from: "1000Artistas <noreply@1000artistas.com>",
     to: artistEmail,
     subject: "Tu perfil ha sido aprobado 🎉",
     html: `
@@ -91,7 +91,7 @@ export async function sendArtistApprovedEmail({
   <div style="max-width:600px;margin:0 auto;background:#151515;border-radius:16px;padding:40px">
 
     <div style="text-align:center;margin-bottom:30px">
-      <img src="https://xvrzlrgzcamromyxawiz.supabase.co/storage/v1/object/public/artists/logo%20600px%20transparente.png" width="170" />
+      <img src="https://xvrzlrgzcamromyxawiz.supabase.co/storage/v1/object/public/artists/Logo%20750x300.png" width="170" />
     </div>
 
     <h1 style="text-align:center;font-size:30px;margin-bottom:10px">
@@ -99,7 +99,7 @@ export async function sendArtistApprovedEmail({
     </h1>
 
     <p style="text-align:center;font-size:18px;color:#cfcfcf;margin-bottom:30px">
-      Ya eres oficialmente un <b>Artista QuitoShows</b>.
+      Ya eres oficialmente un <b>Artista en 1000Artistas.com</b>.
     </p>
 
     <p style="text-align:center;color:#9ca3af;margin-bottom:40px">
@@ -130,14 +130,14 @@ export async function sendArtistApprovedEmail({
     </div>
 
     <div style="text-align:center;margin-top:30px">
-      <a href="https://quitoshows.com/dashboard/artist"
+      <a href="https://1000artistas.com/dashboard/artist"
          style="background:#2563eb;color:white;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:bold">
-         Optimizar mi perfil ahora
+         Ver mi perfil ahora
       </a>
     </div>
 
     <p style="text-align:center;margin-top:40px;color:#6b7280;font-size:13px">
-      QuitoShows — Marketplace & Agencia de Artistas
+      1000Artistas — Marketplace & Agencia de Artistas
     </p>
 
   </div>
