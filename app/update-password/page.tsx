@@ -44,7 +44,6 @@ function LoadingFallback() {
  */
 function UpdatePasswordContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -59,41 +58,18 @@ function UpdatePasswordContent() {
     const verifySession = async () => {
       const supabase = createSupabaseBrowserClient()
 
-      // Check if we have a recovery token in the URL
-      const accessToken = searchParams.get('access_token')
-      const refreshToken = searchParams.get('refresh_token')
-      const type = searchParams.get('type')
+      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href)
 
-      if (type === 'recovery' && accessToken && refreshToken) {
-        // Set the session from the URL tokens
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        })
-
-        if (error) {
-          setIsValidSession(false)
-          setError('El enlace de recuperación es inválido o ha expirado.')
-        } else {
-          setIsValidSession(true)
-        }
+      if (error) {
+        setIsValidSession(false)
+        setError('El enlace de recuperación es inválido o ha expirado.')
       } else {
-        // Check if there's already a valid session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-
-        if (session) {
-          setIsValidSession(true)
-        } else {
-          setIsValidSession(false)
-          setError('El enlace de recuperación es inválido o ha expirado.')
-        }
+        setIsValidSession(true)
       }
     }
 
     verifySession()
-  }, [searchParams])
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
