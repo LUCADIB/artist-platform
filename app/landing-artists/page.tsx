@@ -8,8 +8,9 @@ export default function LandingArtists() {
     <div className="bg-black text-white overflow-hidden">
 
       {/* HERO VIDEO */}
-      <section className="relative w-full h-[70vh] md:h-[85vh]">
+      <section className="relative w-full h-[75vh] md:h-[90vh]">
 
+        {/* VIDEO */}
         <video
           autoPlay
           muted
@@ -19,100 +20,120 @@ export default function LandingArtists() {
           src="/videos/hero.mp4"
         />
 
-        <div className="absolute inset-0 bg-black/60" />
+        {/* OVERLAY CINEMATIC */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black" />
 
+        {/* CONTENT */}
         <div className="relative z-10 flex flex-col justify-center items-center h-full text-center px-6">
 
+          {/* LOGO */}
+          <motion.img
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            src="https://xvrzlrgzcamromyxawiz.supabase.co/storage/v1/object/public/artists/Logo%201000%20tr.png"
+            alt="1000Artistas"
+            className="w-[220px] md:w-[320px] mb-10 opacity-90"
+          />
+
+          {/* TITLE */}
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
             className="text-4xl md:text-7xl font-bold leading-tight max-w-5xl"
           >
-            Convierte tu talento en oportunidades reales
+            Donde el talento se convierte en oportunidades reales
           </motion.h1>
 
+          {/* SUBTITLE */}
           <motion.p
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.25 }}
             className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl"
           >
-            Forma parte del marketplace-agencia donde los artistas se posicionan,
-            destacan y consiguen contrataciones.
+            Únete al marketplace-agencia donde los artistas se posicionan,
+            destacan y consiguen contrataciones constantemente.
           </motion.p>
 
+          {/* CTA */}
           <Link
             href="/register/artist"
-            className="mt-10 bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-xl font-bold text-lg shadow-2xl shadow-blue-600/40 transition"
+            className="mt-12 bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-2xl font-bold text-lg shadow-2xl shadow-blue-600/40 hover:scale-105 transition"
           >
-            Quiero ser estar en 1000Artistas
+            Crear mi perfil ahora
           </Link>
 
         </div>
       </section>
 
       {/* BENEFICIOS */}
-      <section className="py-24 px-6 max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-5xl font-bold text-center">
-          No es solo una página. Es posicionamiento artístico.
+      <section className="py-28 px-6 max-w-6xl mx-auto">
+
+        <h2 className="text-3xl md:text-5xl font-bold text-center max-w-3xl mx-auto">
+          No es solo visibilidad. Es posicionamiento artístico real.
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-16">
+        <div className="grid md:grid-cols-3 gap-8 mt-20">
 
           {[
-            "Perfil profesional optimizado",
-            "Mayor visibilidad frente a clientes",
-            "Sistema de destacados premium",
-            "Gestión tipo agencia",
-            "Más oportunidades de contratación",
-            "Presencia digital de alto nivel"
+            "Perfil profesional optimizado para destacar",
+            "Mayor exposición frente a clientes reales",
+            "Sistema de destacados premium dentro del marketplace",
+            "Gestión tipo agencia para oportunidades estratégicas",
+            "Incremento de solicitudes y contrataciones",
+            "Presencia digital moderna y competitiva"
           ].map((text, i) => (
             <motion.div
               key={i}
               whileInView={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 40 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-neutral-900 border border-neutral-800 p-8 rounded-2xl hover:border-blue-500 transition"
+              initial={{ opacity: 0, y: 50 }}
+              transition={{ delay: i * 0.08 }}
+              className="bg-neutral-900 border border-neutral-800 p-8 rounded-2xl hover:border-blue-500 hover:-translate-y-1 transition"
             >
               {text}
             </motion.div>
           ))}
 
         </div>
+
       </section>
 
       {/* DESTACADOS */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl px-6 py-12 md:p-14 text-center shadow-2xl">
+      <section className="py-28 px-6">
+
+        <div className="max-w-5xl mx-auto bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl px-8 py-14 md:p-16 text-center shadow-2xl">
 
           <h2 className="text-3xl md:text-5xl font-bold leading-tight">
-            Destaca tu talento. Destaca tu perfil.
+            Destaca tu talento dentro de la plataforma
           </h2>
 
           <p className="mt-6 text-blue-100 text-lg md:text-xl">
-            Los artistas destacados obtienen mucha más visibilidad,
-            más clics y más solicitudes dentro de la plataforma.
+            Los perfiles destacados reciben más visibilidad, más clics
+            y muchas más oportunidades de contratación.
           </p>
 
         </div>
+
       </section>
 
       {/* FUTURO */}
-      <section className="py-24 px-6 text-center max-w-4xl mx-auto">
+      <section className="py-28 px-6 text-center max-w-4xl mx-auto">
 
-        <h2 className="text-4xl md:text-5xl font-bold">
-          Estamos construyendo la plataforma artística más potente de LATAM
+        <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+          Estamos construyendo la red artística más potente de Latinoamérica
         </h2>
 
         <p className="mt-6 text-gray-400 text-lg">
-          Posiciónate desde ahora, construye reputación y crece junto a 1000Artistas.com
+          Posiciónate desde hoy, construye reputación digital y crece junto a 1000Artistas.
         </p>
 
         <Link
           href="/register/artist"
-          className="inline-block mt-12 bg-white text-black px-12 py-5 rounded-xl font-bold text-xl hover:scale-105 transition"
+          className="inline-block mt-14 bg-white text-black px-14 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition"
         >
-          Crear mi perfil ahora
+          Unirme como artista
         </Link>
 
       </section>
