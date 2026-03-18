@@ -101,8 +101,24 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   const whatsappMessage = encodeURIComponent(
     `Hola, me gustaría hablar sobre una reserva para ${safeArtist.name}.`
   );
-  const whatsappHref = contactWhatsapp
-    ? `https://wa.me/${contactWhatsapp.replace(/\D/g, "")}?text=${whatsappMessage}`
+  let cleanPhone: string | null = null;
+
+  if (contactWhatsapp) {
+    cleanPhone = contactWhatsapp.replace(/\D/g, "");
+
+    // Normalización Ecuador
+    if (cleanPhone.startsWith("0") && cleanPhone.length === 10) {
+      cleanPhone = "593" + cleanPhone.substring(1);
+    }
+
+    // Si aún es muy corto, invalida
+    if (cleanPhone.length < 11) {
+      cleanPhone = null;
+    }
+  }
+
+  const whatsappHref = cleanPhone
+    ? `https://wa.me/${cleanPhone}?text=${whatsappMessage}`
     : undefined;
 
   return (
@@ -189,7 +205,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
             </div>
           )}
 
-          {/* Videos */}          
+          {/* Videos */}
           <ArtistVideos artistId={safeArtist.id} artistImageUrl={primaryImage ?? null} />
 
           {/* Description */}
