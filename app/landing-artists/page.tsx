@@ -7,17 +7,13 @@ export default function LandingArtists() {
   return (
     <div className="bg-black text-white overflow-hidden">
 
-      {/* HERO VIDEO */}
+      {/* HERO IMAGE */}
       <section className="relative w-full h-[75vh] md:h-[90vh]">
 
-        {/* VIDEO */}
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
+        {/* IMAGE */}
+        <img
+          src="/images/img-hero.jpg"
           className="absolute w-full h-full object-cover"
-          src="/videos/hero.mp4"
         />
 
         {/* OVERLAY CINEMATIC */}
@@ -96,6 +92,51 @@ export default function LandingArtists() {
             </motion.div>
           ))}
 
+        </div>
+
+      </section>
+
+      {/* VIDEO DEMO SECTION */}
+      <section className="py-28">
+
+        <div className="text-center mb-14 px-6">
+          <h2 className="text-3xl md:text-5xl font-bold">
+            Así se verá tu perfil dentro de la plataforma
+          </h2>
+
+          <p className="mt-6 text-gray-400 max-w-2xl mx-auto text-lg">
+            Miles de clientes explorarán artistas en una galería moderna,
+            visual e impactante diseñada para generar oportunidades reales.
+          </p>
+        </div>
+
+        {/* DESKTOP VIDEO */}
+        <div className="hidden md:flex justify-center px-6">
+          <div className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              src="/videos/video-destok.mp4"
+            />
+          </div>
+        </div>
+
+        {/* MOBILE VIDEO */}
+        <div className="md:hidden w-full">
+          <div className="relative w-full aspect-[3/4] overflow-hidden">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              className="absolute inset-0 w-full h-full object-cover"
+              src="/videos/video-mobile.mp4"
+            />
+          </div>
         </div>
 
       </section>

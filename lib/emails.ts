@@ -64,26 +64,26 @@ export async function sendArtistApprovedEmail({
 <tr>
 <td align="center">
 
-<table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="margin-top:30px;border-radius:12px;overflow:hidden;">
+<table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="margin-top:30px;border-radius:14px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;">
 
+<!-- HEADER NEGRO PREMIUM -->
 <tr>
-<td align="center" style="padding:30px 20px;border-bottom:1px solid #eee;">
+<td align="center" bgcolor="#000000" style="padding:30px;">
 
-<h1 style="margin:0;font-size:28px;font-family:Arial,Helvetica,sans-serif;">
-<span style="font-weight:800;color:#111;">1000</span>
-<span style="background:linear-gradient(90deg,#FF3CAC,#784BA0,#2B86C5);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-font-weight:600;">
-Artistas
-</span>
-</h1>
+<table cellpadding="0" cellspacing="0">
+<tr>
+<td align="center" bgcolor="#000000" style="border-radius:14px;padding:18px 26px;">
+<img src="https://xvrzlrgzcamromyxawiz.supabase.co/storage/v1/object/public/artists/Logo%201000%20tr.png" width="160" style="display:block;border:0;" />
+</td>
+</tr>
+</table>
 
 </td>
 </tr>
 
+<!-- CONTENT -->
 <tr>
-<td style="padding:30px;font-family:Arial,Helvetica,sans-serif;color:#111;">
+<td style="padding:30px;color:#111;">
 
 <h2 style="margin:0 0 10px 0;">
 🎉 ¡Felicidades ${artistName}!
@@ -104,8 +104,9 @@ Ver mi perfil
 </td>
 </tr>
 
+<!-- FOOTER -->
 <tr>
-<td style="padding:20px;text-align:center;font-size:12px;color:#999;font-family:Arial;">
+<td style="padding:20px;text-align:center;font-size:12px;color:#999;">
 1000Artistas Team — Marketplace & Agencia de Artistas
 </td>
 </tr>
