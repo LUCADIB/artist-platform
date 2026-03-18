@@ -155,7 +155,7 @@ export function BookingRequestForm({
       <p className="mb-4 text-xs text-neutral-600 sm:text-sm">
         Aquí puedes ver fechas y horarios disponibles de {artistName}.
       </p>
-     
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
@@ -272,18 +272,7 @@ export function BookingRequestForm({
         >
           {isSubmitting ? "Enviando..." : "Enviar solicitud"}
         </button>
-        {artistWhatsapp && (
-          <a
-            href={`https://wa.me/${artistWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
-              `Hola, quiero información sobre ${artistName}`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 block text-center text-sm text-primary-600 underline hover:text-primary-700"
-          >
-            ¿Prefieres hablar directo? Contactar directamente
-          </a>
-        )}
+
       </form>
     </div>
   );
