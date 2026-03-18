@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { getServiceClient } from "@/lib/serviceClient";
 import { generateUniqueSlug } from "@/lib/slugGenerator";
-import { sendNewArtistRegistrationEmail } from "@/lib/emails";
+import { sendNewArtistRegistrationEmail, sendArtistRegisteredEmail } from "@/lib/emails";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -118,6 +118,15 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     console.log("Manager email failed but registration ok");
   }
+  // STEP 6 — EMAIL ARTIST (NO BLOQUEANTE)
+  try {
+    await sendArtistRegisteredEmail({
+      artistEmail: email,
+      artistName: name,
+    });
+  } catch (e) {
+    console.log("Artist registration email failed but registration ok");
+  }
 
   const finalResponse = NextResponse.json(
     {
@@ -134,3 +143,4 @@ export async function POST(request: NextRequest) {
 
   return finalResponse;
 }
+
