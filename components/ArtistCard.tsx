@@ -94,7 +94,7 @@ export function ArtistCard({
           )}
           {isFeatured && (
             <span className={[
-              "absolute right-1.5 top-1.5 sm:right-2 sm:top-2 bg-primary-600 uppercase text-white",
+              "absolute right-1.5 top-1.5 sm:right-2 sm:top-2 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500 uppercase text-white",
               isHero
                 ? "rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-md"
                 : "rounded-md px-1 py-[1px] text-[8px] font-medium tracking-normal shadow-sm sm:rounded-lg sm:px-1.5 sm:py-[2px] sm:text-[9px] sm:tracking-wider md:rounded-full md:px-2 md:py-[3px] md:text-[10px] md:font-semibold md:tracking-wide md:shadow-md",

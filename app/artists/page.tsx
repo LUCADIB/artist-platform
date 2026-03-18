@@ -101,94 +101,116 @@ export default async function ArtistsPage({
   const hasNextPage = currentPage < totalPages;
 
   return (
-    <div className="mx-auto flex min-w-0 flex-col gap-6 px-2 pb-10 pt-8 sm:px-6 lg:px-8">
-      <header className="mx-auto flex w-full max-w-6xl flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
-          Explora todos los artistas
-        </h1>
-        <p className="max-w-2xl text-sm text-neutral-600 sm:text-base">
-          Filtra por nombre y categoría para encontrar el artista perfecto para
-          tu próximo evento.
-        </p>
-      </header>
+    <>
+      {/* HERO EDITORIAL */}
+      <section className="bg-gradient-to-r from-neutral-950 via-neutral-900 to-black text-white mt-6">
 
-      <section className="mx-auto w-full max-w-6xl rounded-2xl border border-neutral-200 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
-        <SearchBar
-          categories={categories ?? []}
-          initialQuery={searchParams?.q}
-          initialCategoryId={searchParams?.categoryId}
-          basePath="/artists"
-        />
+        <div className="mx-auto max-w-6xl px-4 pt-16 pb-24 text-center">
+
+          {/* LOGO */}
+          <div className="flex justify-center mb-6">
+            <img
+              src="https://xvrzlrgzcamromyxawiz.supabase.co/storage/v1/object/public/artists/Logo%201000%20tr.png"
+              alt="1000Artistas"
+              className="h-14 sm:h-16 md:h-20 object-contain"
+            />
+          </div>
+
+          {/* TITULO */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">
+            Explora artistas increíbles
+          </h1>
+
+          {/* SUBTITULO */}
+          <p className="mt-4 text-neutral-300 max-w-2xl mx-auto">
+            Descubre talento profesional, compara perfiles y encuentra el artista perfecto para tu evento.
+          </p>
+
+        </div>
+
       </section>
 
-      <section className="mx-auto w-full max-w-6xl space-y-4">
-        {artists && artists.length > 0 ? (
-          <>
-            <div id="results">
-              <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
-                {artists.map((artist: any) => (
-                  <ArtistCard
-                    key={artist.id}
-                    id={artist.id}
-                    slug={artist.slug}
-                    name={artist.name}
-                    city={artist.city}
-                    categoryName={artist.categories?.name}
-                    avatarUrl={artist.avatar_url}
-                  />
-                ))}
-              </div>
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between gap-3 text-xs text-neutral-600 sm:text-sm">
-                <span>
-                  Página {currentPage} de {totalPages}
-                </span>
-                <div className="flex gap-2">
-                  {hasPreviousPage && (
-                    <a
-                      href={`/artists?${new URLSearchParams({
-                        ...(searchParams?.q ? { q: searchParams.q } : {}),
-                        ...(searchParams?.categoryId
-                          ? { categoryId: searchParams.categoryId }
-                          : {}),
-                        page: String(currentPage - 1)
-                      }).toString()}`}
-                      className="btn-ghost px-3 py-1 text-xs sm:text-sm"
-                    >
-                      Anterior
-                    </a>
-                  )}
-                  {hasNextPage && (
-                    <a
-                      href={`/artists?${new URLSearchParams({
-                        ...(searchParams?.q ? { q: searchParams.q } : {}),
-                        ...(searchParams?.categoryId
-                          ? { categoryId: searchParams.categoryId }
-                          : {}),
-                        page: String(currentPage + 1)
-                      }).toString()}`}
-                      className="btn-ghost px-3 py-1 text-xs sm:text-sm"
-                    >
-                      Siguiente
-                    </a>
-                  )}
+      {/* CONTENIDO ORIGINAL */}
+      <div className="mx-auto flex min-w-0 flex-col gap-6 px-2 pb-10 pt-2 sm:px-6 lg:px-8">
+
+        <section className="mx-auto w-full max-w-6xl rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm mt-8 sm:mt-10 sm:p-5">
+          <SearchBar
+            categories={categories ?? []}
+            initialQuery={searchParams?.q}
+            initialCategoryId={searchParams?.categoryId}
+            basePath="/artists"
+          />
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl space-y-4">
+          {artists && artists.length > 0 ? (
+            <>
+              <div id="results">
+                <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+                  {artists.map((artist: any) => (
+                    <ArtistCard
+                      key={artist.id}
+                      id={artist.id}
+                      slug={artist.slug}
+                      name={artist.name}
+                      city={artist.city}
+                      categoryName={artist.categories?.name}
+                      avatarUrl={artist.avatar_url}
+                    />
+                  ))}
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="flex flex-col items-center gap-1 py-10 text-center">
-            <p className="text-sm font-medium text-neutral-700">
-              No se encontraron artistas
-            </p>
-            <p className="text-xs text-neutral-500">
-              Intenta buscar por nombre de artista o categoría.
-            </p>
-          </div>
-        )}
-      </section>
-    </div>
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between gap-3 text-xs text-neutral-600 sm:text-sm">
+                  <span>
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    {hasPreviousPage && (
+                      <a
+                        href={`/artists?${new URLSearchParams({
+                          ...(searchParams?.q ? { q: searchParams.q } : {}),
+                          ...(searchParams?.categoryId
+                            ? { categoryId: searchParams.categoryId }
+                            : {}),
+                          page: String(currentPage - 1)
+                        }).toString()}`}
+                        className="btn-ghost px-3 py-1 text-xs sm:text-sm"
+                      >
+                        Anterior
+                      </a>
+                    )}
+                    {hasNextPage && (
+                      <a
+                        href={`/artists?${new URLSearchParams({
+                          ...(searchParams?.q ? { q: searchParams.q } : {}),
+                          ...(searchParams?.categoryId
+                            ? { categoryId: searchParams.categoryId }
+                            : {}),
+                          page: String(currentPage + 1)
+                        }).toString()}`}
+                        className="btn-ghost px-3 py-1 text-xs sm:text-sm"
+                      >
+                        Siguiente
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-1 py-10 text-center">
+              <p className="text-sm font-medium text-neutral-700">
+                No se encontraron artistas
+              </p>
+              <p className="text-xs text-neutral-500">
+                Intenta buscar por nombre de artista o categoría.
+              </p>
+            </div>
+          )}
+        </section>
+      </div>
+    </>
   );
 }
 

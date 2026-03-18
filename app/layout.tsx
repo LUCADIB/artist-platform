@@ -3,13 +3,8 @@ import type { ReactNode } from "react";
 import { Navbar } from "../components/Navbar";
 
 export const metadata = {
-  title: "1000Artistas",
-  description: "Marketplace & Agencia de Artistas en Latinoamérica",
-  openGraph: {
-    title: "1000Artistas",
-    description: "Conecta talento real con oportunidades reales",
-    images: ["/og/og-main.png"]
-  }
+  title: "Plataforma de Artistas",
+  description: "Marketplace de reservas para artistas"
 };
 
 export const viewport = {

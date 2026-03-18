@@ -109,34 +109,47 @@ export default async function HomePage({
     : "Próximamente artistas destacados";
 
   return (
-    <div className="flex min-w-0 flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-10 bg-neutral-50">
+
+      {/* HERO */}
       <HeroSection
         categories={categories ?? []}
         initialQuery={searchParams?.q}
         initialCategoryId={searchParams?.categoryId}
       />
 
-      <section className="mx-auto w-full max-w-6xl px-2 pb-10 sm:px-6 lg:px-8">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-neutral-900 sm:text-xl">
+      {/* RESULTS SECTION */}
+      <section className="mx-auto w-full max-w-6xl px-3 pb-14 sm:px-6 lg:px-8">
+
+        {/* HEADER */}
+        <div className="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+          <div className="space-y-2">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-neutral-900">
               {sectionTitle}
             </h2>
-            <p className="text-xs text-neutral-500 sm:text-sm">
-              Explora el catálogo y filtra por categoría para encontrar el match perfecto.
+
+            <p className="text-base text-neutral-500 max-w-xl leading-relaxed">
+              Descubre talento destacado, explora perfiles profesionales y encuentra el artista ideal para tu evento.
             </p>
           </div>
+
           <a
             href="/artists"
-            className="text-xs font-medium text-neutral-900 underline-offset-4 hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-900 transition hover:opacity-60"
           >
             Ver todos los artistas
+            <span className="transition group-hover:translate-x-1">→</span>
           </a>
+
         </div>
+
+        {/* GRID */}
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
-            {/* Artist grid — hero artist gets col-span-2 row-span-2 via isHero */}
+
             <div className="grid grid-cols-2 gap-2 auto-rows-fr md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+
               {visibleArtists.map((artist: any) => (
                 <ArtistCard
                   key={artist.id}
@@ -150,10 +163,13 @@ export default async function HomePage({
                   isHero={artist.home_featured_rank === 1}
                 />
               ))}
+
             </div>
-            {/* Show "Ver más" button when there are more results */}
+
+            {/* VER MÁS */}
             {hasMore && (
-              <div className="mt-6 flex justify-center">
+              <div className="mt-10 flex justify-center">
+
                 <Link
                   href={{
                     pathname: "/artists",
@@ -162,25 +178,42 @@ export default async function HomePage({
                       ...(searchParams?.categoryId && { categoryId: searchParams.categoryId }),
                     },
                   }}
-                  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100"
+                  className="group inline-flex items-center justify-center rounded-2xl bg-white px-7 py-4 text-sm font-semibold text-neutral-900 shadow-md shadow-neutral-200 transition hover:shadow-xl hover:-translate-y-0.5"
                 >
                   {searchParams?.q
                     ? `Ver más resultados de '${searchParams.q}'`
                     : searchParams?.categoryId
-                    ? "Ver más artistas de esta categoría"
-                    : "Ver más resultados"}
+                      ? "Ver más artistas de esta categoría"
+                      : "Ver más resultados"}
+
+                  <span className="ml-2 transition group-hover:translate-x-1">→</span>
                 </Link>
+
               </div>
             )}
+
           </div>
+
         ) : (
-          <div className="flex flex-col items-center gap-1 py-10 text-center">
-            <p className="text-sm font-medium text-neutral-700">
+
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+
+            <div className="text-5xl opacity-40">🎭</div>
+
+            <p className="text-lg font-semibold text-neutral-800">
               {emptyMessage}
             </p>
+
+            <p className="text-sm text-neutral-500 max-w-md">
+              Muy pronto encontrarás artistas increíbles listos para ser contratados.
+            </p>
+
           </div>
+
         )}
+
       </section>
+
     </div>
   );
 }
