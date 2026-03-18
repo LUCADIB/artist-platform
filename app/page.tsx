@@ -119,7 +119,7 @@ export default async function HomePage({
       />
 
       {/* RESULTS SECTION */}
-      <section className="mx-auto w-full max-w-6xl px-3 pb-14 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-7xl px-[6px] pb-14 sm:px-4 lg:px-6">
 
         {/* HEADER */}
         <div className="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -148,7 +148,7 @@ export default async function HomePage({
         {visibleArtists && visibleArtists.length > 0 ? (
           <div id="results">
 
-            <div className="grid grid-cols-2 gap-2 auto-rows-fr md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-1 auto-rows-fr md:grid-cols-3 md:gap-2 lg:grid-cols-4 lg:gap-3">
 
               {visibleArtists.map((artist: any) => (
                 <ArtistCard

@@ -49,7 +49,7 @@ export function ArtistCard({
     <Link
       href={href}
       className={[
-        "block break-inside-avoid mb-2 sm:mb-0",
+        "block break-inside-avoid mb-[2px] sm:mb-0",
         isHero ? "col-span-2 row-span-2" : "col-span-1 row-span-1",
       ].join(" ")}
     >
@@ -67,7 +67,7 @@ export function ArtistCard({
         {/* ── Image tile ── */}
         <div className={[
           "relative overflow-hidden rounded-2xl bg-neutral-100 sm:shadow-[0_8px_30px_rgba(0,0,0,0.06)]",
-          isHero ? "aspect-[4/5] sm:aspect-auto h-auto sm:h-full" : "aspect-[3/4] sm:aspect-[3/4]",
+          isHero ? "aspect-[3/4] sm:aspect-auto h-auto sm:h-full" : "aspect-[3/4] sm:aspect-[3/4]",
         ].join(" ")}>
           {avatarUrl ? (
             <img

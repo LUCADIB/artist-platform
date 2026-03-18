@@ -131,7 +131,7 @@ export default async function ArtistsPage({
       </section>
 
       {/* CONTENIDO ORIGINAL */}
-      <div className="mx-auto flex min-w-0 flex-col gap-6 px-2 pb-10 pt-2 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-w-0 flex-col gap-6 px-[6px] pb-10 pt-2 sm:px-4 lg:px-6 max-w-7xl">
 
         <section className="mx-auto w-full max-w-6xl rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm mt-8 sm:mt-10 sm:p-5">
           <SearchBar
@@ -146,7 +146,7 @@ export default async function ArtistsPage({
           {artists && artists.length > 0 ? (
             <>
               <div id="results">
-                <div className="columns-2 gap-2 sm:columns-none sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
+                <div className="columns-2 gap-[4px] sm:columns-none sm:grid sm:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4 lg:gap-4">
                   {artists.map((artist: any) => (
                     <ArtistCard
                       key={artist.id}
