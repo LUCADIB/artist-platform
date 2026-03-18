@@ -58,9 +58,9 @@ function UpdatePasswordContent() {
     const verifySession = async () => {
       const supabase = createSupabaseBrowserClient()
 
-      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href)
+      const { data } = await supabase.auth.getSession()
 
-      if (error) {
+      if (!data.session) {
         setIsValidSession(false)
         setError('El enlace de recuperación es inválido o ha expirado.')
       } else {
