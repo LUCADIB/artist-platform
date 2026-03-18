@@ -21,15 +21,20 @@ interface ArtistWithCategory {
   managed_by_admin: boolean;
   manager_profile_id: string | null;
   categories: { name: string } | null;
+
+  manager_profile?: {
+    phone: string | null;
+  } | null;
 }
 
-export default async function ArtistProfilePage({ params }: ArtistPageParams) {
-  const supabase = await createSupabaseServerClient();
+import { getServiceClient } from "@/lib/serviceClient";
 
+export default async function ArtistProfilePage({ params }: ArtistPageParams) {
+  const supabase = getServiceClient();
   const { data: artistRaw } = await supabase
     .from("artists")
     .select(
-      "id, name, slug, bio, avatar_url, city, category_id, whatsapp, managed_by_admin, manager_profile_id, categories ( name )"
+      "id, name, slug, bio, avatar_url, city, category_id, whatsapp, managed_by_admin, manager_profile_id, categories ( name ), manager_profile:profiles!artists_manager_profile_id_fkey ( phone )"
     )
     .eq("slug", params.slug)
     .eq("status", "approved") // Only show approved artists publicly
@@ -40,6 +45,7 @@ export default async function ArtistProfilePage({ params }: ArtistPageParams) {
   if (!artist) {
     notFound();
   }
+
   // TypeScript requires a non-null assertion after the notFound() guard
   const safeArtist = artist!;
 
