@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Category = {
   id: string;
@@ -26,6 +26,61 @@ export function SearchBar({
 
   const [query, setQuery] = useState(initialQuery ?? "");
   const [categoryId, setCategoryId] = useState(initialCategoryId ?? "");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search-suggestions?q=${query}`);
+        const data = await res.json();
+
+        // 🔥 si solo hay una coincidencia EXACTA → no mostrar dropdown
+        if (data.length === 1 && data[0].toLowerCase() === query.toLowerCase()) {
+          setSuggestions([]);
+          setShowSuggestions(false);
+          return;
+        }
+
+        setSuggestions(data);
+        setShowSuggestions(true);
+      } catch (e) {
+        console.error(e);
+      }
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  function selectSuggestion(text: string) {
+    setQuery(text);
+
+    // 🔥 limpiar dropdown correctamente
+    setSuggestions([]);
+    setShowSuggestions(false);
+
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.set("q", text);
+
+    router.push(`${basePath}?${params.toString()}`, { scroll: false });
+
+    // 🔥 bajar automáticamente a resultados
+    setTimeout(() => {
+      const el = document.getElementById("results");
+      if (el) {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    }, 350);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,16 +100,6 @@ export function SearchBar({
     }
 
     router.push(`${basePath}?${params.toString()}`, { scroll: false });
-
-    setTimeout(() => {
-      const el = document.getElementById("results");
-      if (el) {
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
-    }, 300);
   }
 
   return (
@@ -62,31 +107,43 @@ export function SearchBar({
       onSubmit={handleSubmit}
       className="flex flex-col gap-3 md:grid md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] md:items-end"
     >
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="search-name"
-          className="text-xs font-medium text-neutral-600"
-        >
+      <div className="flex flex-col gap-1 relative">
+        <label className="text-xs font-medium text-neutral-600">
           Buscar artistas o categorías
         </label>
+
         <input
-          id="search-name"
           className="input text-base"
-          placeholder="Ej. DJ, banda, show, música..."
+          placeholder="Ej. DJ, banda, show..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          onFocus={() => {
+            if (suggestions.length > 0) setShowSuggestions(true);
+          }}
         />
+
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute top-full mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-xl z-50 overflow-y-auto max-h-64">
+            {suggestions.map((s, i) => (
+              <div
+                key={i}
+                onMouseDown={() => selectSuggestion(s)}
+                className="px-4 py-3 text-sm hover:bg-neutral-100 cursor-pointer"
+              >
+                {s}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
-        <label
-          htmlFor="search-category"
-          className="text-xs font-medium text-neutral-600"
-        >
+        <label className="text-xs font-medium text-neutral-600">
           Categoría
         </label>
+
         <select
-          id="search-category"
           className="input text-base"
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
@@ -109,4 +166,3 @@ export function SearchBar({
     </form>
   );
 }
-
